@@ -153,7 +153,7 @@ private[spark] class BlockManager(
 
   private class Time (time: Long) {
     def += (x: Long): Unit = {
-      time += x
+      time = time + x
     }
 
     override def toString: String = time.toString
