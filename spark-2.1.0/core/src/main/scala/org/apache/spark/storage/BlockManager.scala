@@ -151,7 +151,8 @@ private[spark] class BlockManager(
 
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
-  private class Time (time: Long) {
+  private class Time () {
+    var time: Long = _
     def += (x: Long): Unit = {
       time = time + x
     }
@@ -159,10 +160,10 @@ private[spark] class BlockManager(
     override def toString: String = time.toString
   }
 
-  private val smt: Time = new Time (0)
-  private val dmt: Time = new Time (0)
-  private val sdt: Time = new Time (0)
-  private val ddt: Time = new Time (0)
+  private val smt: Time = new Time ()
+  private val dmt: Time = new Time ()
+  private val sdt: Time = new Time ()
+  private val ddt: Time = new Time ()
 
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
