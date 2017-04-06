@@ -151,6 +151,19 @@ private[spark] class BlockManager(
 
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
+  private class Time (time: Long) {
+    def += (x: Long): Unit = {
+      time += x
+    }
+
+    override def toString: String = time.toString
+  }
+
+  private val smt: Time = new Time (0)
+  private val dmt: Time = new Time (0)
+  private val sdt: Time = new Time (0)
+  private val ddt: Time = new Time (0)
+
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
    * the appId may not be known at BlockManager instantiation time (in particular for the driver,
@@ -436,6 +449,16 @@ private[spark] class BlockManager(
     throw new SparkException(s"Block $blockId was not found even though it's read-locked")
   }
 
+  def time[R](block: => R, t: _ <: Time): R = {
+    val t0 = System.nanoTime ()
+    val result = block
+    if (t == null) {
+      throw new SparkException("Unexpected Cache measurement")
+    }
+    t += System.nanoTime () - t0
+    result
+  }
+
   /**
    * Get block from local block manager as an iterator of Java objects.
    */
@@ -450,10 +473,12 @@ private[spark] class BlockManager(
         logDebug(s"Level for block $blockId is $level")
         if (level.useMemory && memoryStore.contains(blockId)) {
           val iter: Iterator[Any] = if (level.deserialized) {
-            memoryStore.getValues(blockId).get
+            time (memoryStore.getValues(blockId).get, dmt)
           } else {
-            serializerManager.dataDeserializeStream(
-              blockId, memoryStore.getBytes(blockId).get.toInputStream())(info.classTag)
+            time (
+              serializerManager.dataDeserializeStream(
+                blockId, memoryStore.getBytes(blockId).get.toInputStream())(info.classTag),
+              smt)
           }
           val ci = CompletionIterator[Any, Iterator[Any]](iter, releaseLock(blockId))
           Some(new BlockResult(ci, DataReadMethod.Memory, info.size))
@@ -461,14 +486,14 @@ private[spark] class BlockManager(
           val iterToReturn: Iterator[Any] = {
             val diskBytes = diskStore.getBytes(blockId)
             if (level.deserialized) {
-              val diskValues = serializerManager.dataDeserializeStream(
+              val diskValues = time (serializerManager.dataDeserializeStream(
                 blockId,
-                diskBytes.toInputStream(dispose = true))(info.classTag)
+                diskBytes.toInputStream(dispose = true))(info.classTag), ddt)
               maybeCacheDiskValuesInMemory(info, blockId, level, diskValues)
             } else {
-              val stream = maybeCacheDiskBytesInMemory(info, blockId, level, diskBytes)
+              val stream = time (maybeCacheDiskBytesInMemory(info, blockId, level, diskBytes)
                 .map {_.toInputStream(dispose = false)}
-                .getOrElse { diskBytes.toInputStream(dispose = true) }
+                .getOrElse { diskBytes.toInputStream(dispose = true) }, sdt)
               serializerManager.dataDeserializeStream(blockId, stream)(info.classTag)
             }
           }
