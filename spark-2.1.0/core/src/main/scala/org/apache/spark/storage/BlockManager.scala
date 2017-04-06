@@ -449,7 +449,7 @@ private[spark] class BlockManager(
     throw new SparkException(s"Block $blockId was not found even though it's read-locked")
   }
 
-  def time[R](block: => R, t: _ <: Time): R = {
+  def time[R](block: => R, t: Time): R = {
     val t0 = System.nanoTime ()
     val result = block
     if (t == null) {
