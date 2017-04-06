@@ -1915,7 +1915,13 @@ class SparkContext(config: SparkConf) extends Logging {
     if (conf.getBoolean("spark.logLineage", false)) {
       logInfo("RDD's recursive dependencies:\n" + rdd.toDebugString)
     }
+    SparkEnv.get.blockManager.resetTimes()
     dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, resultHandler, localProperties.get)
+    val arr = SparkEnv.get.blockManager.getCacheTime()
+    val pw = new PrintWriter(new File("/home/arcs/tmp/cache_perf/" + rdd))
+    pw.append (arr.mkString(","))
+    pw.close()
+    SparkEnv.get.blockManager.resetTimes()
     progressBar.foreach(_.finishAll())
     rdd.doCheckpoint()
   }
