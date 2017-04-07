@@ -85,6 +85,35 @@ abstract class TaskContext extends Serializable {
 
   // Note: getters in this class are defined with parentheses to maintain backward compatibility.
 
+  private class Time () {
+    var time: Long = _
+    def += (x: Long): Unit = {
+      time = time + x
+    }
+
+    def reset (): Unit = {
+      time = 0
+    }
+
+    override def toString: String = time.toString
+  }
+
+  private val smt: Time = new Time ()
+  private val dmt: Time = new Time ()
+  private val sdt: Time = new Time ()
+  private val ddt: Time = new Time ()
+
+  def getCacheTime(): Array[String] = {
+    Array[String] (smt.toString, dmt.toString, sdt.toString, ddt.toString)
+  }
+
+  def resetTimes(): Unit = {
+    smt.reset()
+    dmt.reset()
+    sdt.reset()
+    ddt.reset()
+  }
+
   /**
    * Returns true if the task has completed.
    */
