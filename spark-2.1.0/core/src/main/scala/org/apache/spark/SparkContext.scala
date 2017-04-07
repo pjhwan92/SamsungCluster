@@ -1914,7 +1914,7 @@ class SparkContext(config: SparkConf) extends Logging {
     logInfo("Starting job: " + callSite.shortForm)
     if (conf.getBoolean("spark.logLineage", false)) {
       logInfo("RDD's recursive dependencies:\n" + rdd.toDebugString)
-    }
+    } // wow
     SparkEnv.get.blockManager.resetTimes()
     dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, resultHandler, localProperties.get)
     val arr = SparkEnv.get.blockManager.getCacheTime()
