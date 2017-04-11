@@ -1,0 +1,51 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Default system properties included when running spark-submit.
+# This is useful for setting default environmental settings.
+
+# Example:
+spark.master                     spark://compute11:7077
+# spark.eventLog.enabled           true
+# spark.eventLog.dir               hdfs://namenode:8021/directory
+# spark.serializer                 org.apache.spark.serializer.KryoSerializer
+#spark.driver.memory              16g
+#spark.driver.extraJavaOption     8g
+# spark.executor.extraJavaOptions  -XX:+PrintGCDetails -Dkey=value -Dnumbers="one two three"
+spark.local.dir                  /home/arcs/data/tmp/spark
+#spark.yarn.jar                   /home/arcs/fr/spark-2.0.0-bin-hadoop2.7/jars
+spark.shuffle.manager            SORT
+spark.executor.cores             1
+spark.executor.memory            12g
+#spark.executor.instances         1
+#spark.executor.extrajavaoptions  "-Xmx2g -XX:MaxPermSize=2g"
+spark.driver.memory              120g
+#spark.driver.extrajavaoptions  "-Xmx96g -XX:MaxPermSize=96g"
+#spark.locality.wait              0s
+#spark.locality.wait.node         0s
+#spark.locality.wait.proces       0s
+#spark.locality.wait.rack         0s
+spark.eventLog.dir               hdfs://compute11:9000/logs
+#spark.eventLog.dir              alluxio://compute11:19998/logs
+spark.history.fs.logDirectory    hdfs://compute11:9000/logs
+spark.eventLog.enabled           true
+spark.executor.extraJavaOption   -Dlog4j.configuration=/home/arcs/fr/spark/conf/log4j.properties
+spark.driver.extraJavaOption     -Dlog4j.configuration=/home/arcs/fr/spark/conf/log4j.properties
+spark.hadoop.defaultFS           alluxio://compute11:19998
+spark.driver.maxResultSize       62g
+spark.executor.heartbeatInterval 10000000
+spasrk.network.timeout					 10000000
