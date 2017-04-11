@@ -65,6 +65,7 @@ private[spark] class TaskContextImpl(
   override def updateTime(time: Long, readConfig: Long): Long = {
     this.time += time
     this.time.setReadConfig(readConfig)
+    time
   }
 
   override def addTaskCompletionListener(listener: TaskCompletionListener): this.type = {
