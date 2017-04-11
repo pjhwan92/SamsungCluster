@@ -153,13 +153,8 @@ private[spark] class BlockManager(
 
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
-  def writeTime (file: File, msg: String): Unit = synchronized {
-    val fw = new FileWriter(file)
-    try {
-      fw.write(msg)
-    } finally {
-      fw.close()
-    }
+  def writeTime (filename: String, msg: String): Unit = synchronized {
+    new PrintWriter (filename) { write(msg); close }
   }
 
   /**
