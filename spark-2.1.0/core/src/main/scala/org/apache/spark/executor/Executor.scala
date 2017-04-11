@@ -40,6 +40,34 @@ import org.apache.spark.storage.{StorageLevel, TaskResultBlockId}
 import org.apache.spark.util._
 import org.apache.spark.util.io.ChunkedByteBuffer
 
+class Time extends Enumeration {
+  private var time: Long = _
+  private var readConfig: Long = -1
+  def += (x: Long): Unit = {
+    time = time + x
+  }
+
+  def reset (): Unit = {
+    time = 0
+    readConfig = -1
+  }
+
+  def setReadConfig(readConfig: Long): Unit = {
+    this.readConfig = readConfig match {
+      case 0 | 1 | 10 | 11 => readConfig
+      case _ => -1
+    }
+
+  }
+
+  override def toString: String = {
+    if (readConfig < 0) {
+      return null
+    }
+    time.toString + " (" + readConfig.toString + ")"
+  }
+  def getTime: Long = time
+}
 /**
  * Spark executor, backed by a threadpool to run tasks.
  *
@@ -195,6 +223,8 @@ private[spark] class Executor(
     /** Whether this task has been killed. */
     @volatile private var killed = false
 
+    private val time: Time = new Time ()
+
     /** Whether this task has been finished. */
     @GuardedBy("TaskRunner.this")
     private var finished = false
@@ -273,6 +303,7 @@ private[spark] class Executor(
         env.mapOutputTracker.updateEpoch(task.epoch)
 
         // Run the actual task and measure its runtime.
+        time.reset()
         taskStart = System.currentTimeMillis()
         taskStartCpu = if (threadMXBean.isCurrentThreadCpuTimeSupported) {
           threadMXBean.getCurrentThreadCpuTime
@@ -282,7 +313,8 @@ private[spark] class Executor(
           val res = task.run(
             taskAttemptId = taskId,
             attemptNumber = attemptNumber,
-            metricsSystem = env.metricsSystem)
+            metricsSystem = env.metricsSystem,
+            time = this.time)
           threwException = false
           res
         } finally {
@@ -336,6 +368,12 @@ private[spark] class Executor(
           (taskFinishCpu - taskStartCpu) - task.executorDeserializeCpuTime)
         task.metrics.setJvmGCTime(computeTotalGcTime() - startGCTime)
         task.metrics.setResultSerializationTime(afterSerialization - beforeSerialization)
+
+        val file = new File (
+          "/home/arcs/tmp/cache_perf/"
+          + task.stageAttemptId + "_" + this.taskId
+        )
+        env.blockManager.writeTime(file, time.toString)
 
         // Note: accumulator updates must be collected after TaskMetrics is updated
         val accumUpdates = task.collectAccumulatorUpdates()
@@ -398,7 +436,8 @@ private[spark] class Executor(
           // Collect latest accumulator values to report back to the driver
           val accums: Seq[AccumulatorV2[_, _]] =
             if (task != null) {
-              task.metrics.setExecutorRunTime(System.currentTimeMillis() - taskStart)
+              val curTime = System.currentTimeMillis() - taskStart
+              task.metrics.setExecutorRunTime(curTime)
               task.metrics.setJvmGCTime(computeTotalGcTime() - startGCTime)
               task.collectAccumulatorUpdates(taskFailed = true)
             } else {

@@ -50,7 +50,9 @@ import org.apache.spark.util.io.ChunkedByteBuffer
 private[spark] class BlockResult(
     val data: Iterator[Any],
     val readMethod: DataReadMethod.Value,
-    val bytes: Long)
+    val bytes: Long,
+    val time: Long = 0,
+    val des: Boolean = true)
 
 /**
  * Manager running on every node (driver and executors) which provides interfaces for putting and
@@ -151,6 +153,14 @@ private[spark] class BlockManager(
 
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
+  def writeTime (file: File, msg: String): Unit = synchronized {
+    val fw = new FileWriter(file)
+    try {
+      fw.write(msg)
+    } finally {
+      fw.close()
+    }
+  }
 
   /**
    * Initializes the BlockManager with the given appId. This is not performed in the constructor as
@@ -437,16 +447,6 @@ private[spark] class BlockManager(
     throw new SparkException(s"Block $blockId was not found even though it's read-locked")
   }
 
-  def time[R](block: => R, t: Time): R = {
-    val t0 = System.nanoTime ()
-    val result = block
-    if (t == null) {
-      throw new SparkException("Unexpected Cache measurement")
-    }
-    t += System.nanoTime () - t0
-    result
-  }
-
   /**
    * Get block from local block manager as an iterator of Java objects.
    */
@@ -458,35 +458,37 @@ private[spark] class BlockManager(
         None
       case Some(info) =>
         val level = info.level
+        var des = true
+        val time = System.nanoTime()
         logDebug(s"Level for block $blockId is $level")
         if (level.useMemory && memoryStore.contains(blockId)) {
           val iter: Iterator[Any] = if (level.deserialized) {
-            time (memoryStore.getValues(blockId).get, dmt)
+            memoryStore.getValues(blockId).get
           } else {
-            time (
-              serializerManager.dataDeserializeStream(
-                blockId, memoryStore.getBytes(blockId).get.toInputStream())(info.classTag),
-              smt)
+            des = false
+            serializerManager.dataDeserializeStream(
+                blockId, memoryStore.getBytes(blockId).get.toInputStream())(info.classTag)
           }
           val ci = CompletionIterator[Any, Iterator[Any]](iter, releaseLock(blockId))
-          Some(new BlockResult(ci, DataReadMethod.Memory, info.size))
+          Some(new BlockResult(ci, DataReadMethod.Memory, info.size, System.nanoTime() - time, des))
         } else if (level.useDisk && diskStore.contains(blockId)) {
           val iterToReturn: Iterator[Any] = {
             val diskBytes = diskStore.getBytes(blockId)
             if (level.deserialized) {
-              val diskValues = time (serializerManager.dataDeserializeStream(
+              val diskValues = serializerManager.dataDeserializeStream(
                 blockId,
-                diskBytes.toInputStream(dispose = true))(info.classTag), ddt)
+                diskBytes.toInputStream(dispose = true))(info.classTag)
               maybeCacheDiskValuesInMemory(info, blockId, level, diskValues)
             } else {
-              val stream = time (maybeCacheDiskBytesInMemory(info, blockId, level, diskBytes)
+              des = false
+              val stream = maybeCacheDiskBytesInMemory(info, blockId, level, diskBytes)
                 .map {_.toInputStream(dispose = false)}
-                .getOrElse { diskBytes.toInputStream(dispose = true) }, sdt)
+                .getOrElse { diskBytes.toInputStream(dispose = true) }
               serializerManager.dataDeserializeStream(blockId, stream)(info.classTag)
             }
           }
           val ci = CompletionIterator[Any, Iterator[Any]](iterToReturn, releaseLock(blockId))
-          Some(new BlockResult(ci, DataReadMethod.Disk, info.size))
+          Some(new BlockResult(ci, DataReadMethod.Disk, info.size, System.nanoTime() - time, des))
         } else {
           handleLocalReadFailure(blockId)
         }

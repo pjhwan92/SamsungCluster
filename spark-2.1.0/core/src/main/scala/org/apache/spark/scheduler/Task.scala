@@ -26,6 +26,7 @@ import scala.collection.mutable.HashMap
 
 import org.apache.spark._
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.executor.Time
 import org.apache.spark.memory.{MemoryMode, TaskMemoryManager}
 import org.apache.spark.metrics.MetricsSystem
 import org.apache.spark.serializer.SerializerInstance
@@ -74,7 +75,8 @@ private[spark] abstract class Task[T](
   final def run(
       taskAttemptId: Long,
       attemptNumber: Int,
-      metricsSystem: MetricsSystem): T = {
+      metricsSystem: MetricsSystem,
+      time: Time): T = {
     SparkEnv.get.blockManager.registerTask(taskAttemptId)
     context = new TaskContextImpl(
       stageId,
@@ -84,7 +86,8 @@ private[spark] abstract class Task[T](
       taskMemoryManager,
       localProperties,
       metricsSystem,
-      metrics)
+      metrics,
+      time)
     TaskContext.setTaskContext(context)
     taskThread = Thread.currentThread()
 

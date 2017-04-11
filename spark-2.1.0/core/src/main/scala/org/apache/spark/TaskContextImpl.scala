@@ -22,6 +22,7 @@ import java.util.Properties
 import scala.collection.mutable.ArrayBuffer
 
 import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.executor.Time
 import org.apache.spark.internal.Logging
 import org.apache.spark.memory.TaskMemoryManager
 import org.apache.spark.metrics.MetricsSystem
@@ -37,7 +38,8 @@ private[spark] class TaskContextImpl(
     localProperties: Properties,
     @transient private val metricsSystem: MetricsSystem,
     // The default value is only used in tests.
-    override val taskMetrics: TaskMetrics = TaskMetrics.empty)
+    override val taskMetrics: TaskMetrics = TaskMetrics.empty,
+    val time: Time = _)
   extends TaskContext
   with Logging {
 
@@ -55,6 +57,15 @@ private[spark] class TaskContextImpl(
 
   // Whether the task has failed.
   @volatile private var failed: Boolean = false
+
+  private var readConfig: Long = _
+
+  override def getTime: Time = this.time
+
+  override def updateTime(time: Long, readConfig: Long): Long = {
+    this.time += time
+    this.time.setReadConfig(readConfig)
+  }
 
   override def addTaskCompletionListener(listener: TaskCompletionListener): this.type = {
     onCompleteCallbacks += listener

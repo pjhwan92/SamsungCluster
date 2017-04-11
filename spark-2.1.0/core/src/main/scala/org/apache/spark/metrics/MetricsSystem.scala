@@ -17,14 +17,13 @@
 
 package org.apache.spark.metrics
 
+import java.io.{File, FileWriter}
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import scala.collection.mutable
-
 import com.codahale.metrics.{Metric, MetricFilter, MetricRegistry}
 import org.eclipse.jetty.servlet.ServletContextHandler
-
 import org.apache.spark.{SecurityManager, SparkConf}
 import org.apache.spark.internal.config._
 import org.apache.spark.internal.Logging

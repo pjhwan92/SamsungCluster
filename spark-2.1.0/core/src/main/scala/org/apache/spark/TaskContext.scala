@@ -20,7 +20,9 @@ package org.apache.spark
 import java.io.Serializable
 import java.util.Properties
 
+import org.apache.spark.executor.Time
 import org.apache.spark.annotation.DeveloperApi
+import org.apache.spark.executor.DataReadMethod
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.memory.TaskMemoryManager
 import org.apache.spark.metrics.source.Source
@@ -85,34 +87,8 @@ abstract class TaskContext extends Serializable {
 
   // Note: getters in this class are defined with parentheses to maintain backward compatibility.
 
-  private class Time () {
-    var time: Long = _
-    def += (x: Long): Unit = {
-      time = time + x
-    }
-
-    def reset (): Unit = {
-      time = 0
-    }
-
-    override def toString: String = time.toString
-  }
-
-  private val smt: Time = new Time ()
-  private val dmt: Time = new Time ()
-  private val sdt: Time = new Time ()
-  private val ddt: Time = new Time ()
-
-  def getCacheTime(): Array[String] = {
-    Array[String] (smt.toString, dmt.toString, sdt.toString, ddt.toString)
-  }
-
-  def resetTimes(): Unit = {
-    smt.reset()
-    dmt.reset()
-    sdt.reset()
-    ddt.reset()
-  }
+  def updateTime(time: Long, readConfig: Long): Long
+  def getTime: Time
 
   /**
    * Returns true if the task has completed.

@@ -17,9 +17,10 @@
 
 package org.apache.spark.executor
 
+import java.io.{File, FileWriter}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{ArrayBuffer, LinkedHashMap}
-
 import org.apache.spark._
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.internal.Logging
