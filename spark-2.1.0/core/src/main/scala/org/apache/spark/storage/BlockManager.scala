@@ -19,6 +19,7 @@ package org.apache.spark.storage
 
 import java.io._
 import java.nio.ByteBuffer
+import java.nio.file.{Files, Paths}
 
 import scala.collection.mutable
 import scala.collection.mutable.HashMap
@@ -27,7 +28,6 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.Random
 import scala.util.control.NonFatal
-
 import org.apache.spark._
 import org.apache.spark.executor.{DataReadMethod, ShuffleWriteMetrics}
 import org.apache.spark.internal.Logging
@@ -154,6 +154,9 @@ private[spark] class BlockManager(
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
   def writeTime (filename: String, msg: String): Unit = synchronized {
+    if (Files.exists(Paths.get(filename))) {
+      Files.createFile(Paths.get(filename))
+    }
     new PrintWriter (filename) { write(msg); close }
   }
 
