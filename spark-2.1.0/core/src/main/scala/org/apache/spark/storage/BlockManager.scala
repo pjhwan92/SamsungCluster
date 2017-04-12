@@ -154,10 +154,12 @@ private[spark] class BlockManager(
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
   def writeTime (filename: String, msg: String): Unit = synchronized {
+    var _msg = msg
     if (!Files.exists(Paths.get(filename))) {
       Files.createFile(Paths.get(filename))
+      _msg += "\t(overlapped)"
     }
-    new PrintWriter (new FileOutputStream(filename, true)) { write(msg + "\n"); close() }
+    new PrintWriter (new FileOutputStream(filename, true)) { write(_msg + "\n"); close() }
   }
 
   /**
