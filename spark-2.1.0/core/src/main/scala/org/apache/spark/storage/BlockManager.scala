@@ -157,7 +157,7 @@ private[spark] class BlockManager(
     if (!Files.exists(Paths.get(filename))) {
       Files.createFile(Paths.get(filename))
     }
-    new PrintWriter (filename) { write(msg); close }
+    new PrintWriter (filename) { write(msg + "\n"); close() }
   }
 
   /**

@@ -369,8 +369,10 @@ private[spark] class Executor(
         task.metrics.setJvmGCTime(computeTotalGcTime() - startGCTime)
         task.metrics.setResultSerializationTime(afterSerialization - beforeSerialization)
 
-        val filename = "/home/arcs/tmp/cache_perf/" + task.stageAttemptId + "_" + this.taskId
+        if (time.toString != null) {
+          val filename = "/home/arcs/tmp/cache_perf/" + task.stageAttemptId + "_" + this.taskId
           env.blockManager.writeTime(filename, time.toString)
+        }
 
         // Note: accumulator updates must be collected after TaskMetrics is updated
         val accumUpdates = task.collectAccumulatorUpdates()
