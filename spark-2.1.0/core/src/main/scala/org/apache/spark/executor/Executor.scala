@@ -371,7 +371,12 @@ private[spark] class Executor(
 
         if (time.toString != null) {
           val filename = "/home/arcs/tmp/cache_perf/" + task.stageAttemptId + "_" + this.taskId
-          env.blockManager.writeTime(filename, time.toString)
+          env.blockManager.writeTime(
+            filename,
+            time.toString
+              + "\t:\t" + task.metrics.executorRunTime
+              + "\t:\t" + task.metrics.executorCpuTime
+          )
         }
 
         // Note: accumulator updates must be collected after TaskMetrics is updated
