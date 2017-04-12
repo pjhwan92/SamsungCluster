@@ -154,7 +154,7 @@ private[spark] class BlockManager(
   private var blockReplicationPolicy: BlockReplicationPolicy = _
 
   def writeTime (filename: String, msg: String): Unit = synchronized {
-    if (Files.exists(Paths.get(filename))) {
+    if (!Files.exists(Paths.get(filename))) {
       Files.createFile(Paths.get(filename))
     }
     new PrintWriter (filename) { write(msg); close }
