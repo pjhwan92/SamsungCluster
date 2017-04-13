@@ -370,7 +370,8 @@ private[spark] class Executor(
         task.metrics.setResultSerializationTime(afterSerialization - beforeSerialization)
 
         if (time.toString != null) {
-          val filename = "/home/arcs/tmp/cache_perf/" + task.stageAttemptId + "_" + this.taskId
+          val filename = "/home/arcs/tmp/cache_perf/" + task.stageId + "_" +
+            task.stageAttemptId + "_" + this.taskId
           env.blockManager.writeTime(
             filename,
             time.toString

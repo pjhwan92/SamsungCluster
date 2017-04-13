@@ -158,7 +158,7 @@ private[spark] class BlockManager(
     if (!Files.exists(Paths.get(filename))) {
       Files.createFile(Paths.get(filename))
     } else {
-      _msg += "\t(overlapped"
+      _msg += "\t(overlapped)"
     }
     new PrintWriter (new FileOutputStream(filename, true)) { write(_msg + "\n"); close() }
   }
