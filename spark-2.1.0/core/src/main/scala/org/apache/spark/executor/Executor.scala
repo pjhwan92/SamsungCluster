@@ -369,8 +369,8 @@ private[spark] class Executor(
         task.metrics.setJvmGCTime(computeTotalGcTime() - startGCTime)
         task.metrics.setResultSerializationTime(afterSerialization - beforeSerialization)
 
-        val filename = "/home/arcs/tmp/cache_perf/" + this.taskId + "_" + task.stageId + "_"
-          + task.stageAttemptId + "_" + task.partitionId
+        val filename = ("/home/arcs/tmp/cache_perf/" + this.taskId + "_" + task.stageId + "_"
+          + task.stageAttemptId + "_" + task.partitionId)
         env.blockManager.writeTime(
           filename,
           time.toString
