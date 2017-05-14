@@ -40,4 +40,11 @@ class WordCount {
          .map (word => (word, 1))
          .reduceByKey {case (x, y) => x + y}
   }
+
+}
+
+object WordCount {
+  def main (args: Array[String]): Unit = {
+    new WordCount ()
+  }
 }
