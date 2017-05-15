@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession
 /**
   * Created by pjh on 5/12/17.
   */
-public class WordCount {
+class WordCount {
   var sc: SparkContext = null
 
   def wc () {
