@@ -1,5 +1,8 @@
 package kr.edu.skku.arcs.wc
 
+import java.io.{FileOutputStream, PrintWriter}
+import java.nio.file.{Files, Paths}
+
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
@@ -13,12 +16,15 @@ class WordCount {
   def wc () {
     val hdfs = "hdfs://compute11:9000/user/arcs/"
     val alluxio = "alluxio://compute11:19998/"
+    val localPrefix = System.currentTimeMillis.toString
     val files = List ("input_25", "input_50", "input_75", "input_100")
+    val times: Map[String, List[String]] = files.map ((_, List ())).toMap
 
     //val conf = new SparkConf ().setAppName ("word count");
     val spark = SparkSession.builder.appName ("word count").getOrCreate ()
-    var textFile: RDD[String] = null
-    var cachedRdd: RDD[String] = null
+    var textFile, cachedRdd: RDD[String] = null
+
+    var start : Long = 0L
 
     sc = spark.sparkContext
 
@@ -27,36 +33,56 @@ class WordCount {
       textFile.count()
 
       // hdfs
+      start = System.currentTimeMillis ()
       textFile = sc.textFile(hdfs + file)
       textFile.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
         .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_1") // 0
+      times (file) ++ (System.currentTimeMillis () - start).toString
+
+      start = System.currentTimeMillis ()
       cachedRdd = sc.textFile(hdfs + file).cache()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
         .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_2") // 1
+      times (file) ++ (System.currentTimeMillis () - start).toString
+
+      start = System.currentTimeMillis ()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
         .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_3") // 2
+      times (file) ++ (System.currentTimeMillis () - start).toString
 
       // alluxio
+      start = System.currentTimeMillis ()
       textFile = sc.textFile(hdfs + file)
       textFile.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
         .saveAsTextFile(hdfs + "wc_alluxio" + file + "_result_1") // 3
+      times (file) ++ (System.currentTimeMillis () - start).toString
+
+      start = System.currentTimeMillis ()
       sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc" + file + "_med_result_1")
       cachedRdd = sc.textFile(alluxio + "wc" + file + "_med_result_1")
+      times (file) ++ (System.currentTimeMillis () - start).toString
+
+      start = System.currentTimeMillis ()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
         .saveAsTextFile(hdfs + "wc_alluxio" + file + "_result_2") // 5
+      times (file) ++ (System.currentTimeMillis () - start).toString
+    }
 
-      textFile = sc.textFile(hdfs + file)
-      textFile.count()
+    Files.createFile (Paths.get (localPrefix))
+    new PrintWriter (new FileOutputStream (localPrefix, true)) {
+      for ((data, list) <- times) {
+        write (data + "\t" + list.mkString ("\t") + "\n")
+      }
     }
   }
 
