@@ -26,6 +26,8 @@ class WordCount {
 
     var start : Long = 0L
 
+    Files.createFile (Paths.get (localPrefix))
+
     sc = spark.sparkContext
 
     for (file <- files) {
@@ -78,7 +80,6 @@ class WordCount {
       times (file) ++ (System.currentTimeMillis () - start).toString
     }
 
-    Files.createFile (Paths.get (localPrefix))
     new PrintWriter (new FileOutputStream (localPrefix, true)) {
       for ((data, list) <- times) {
         write (data + "\t" + list.mkString ("\t") + "\n")
