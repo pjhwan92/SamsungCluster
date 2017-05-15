@@ -26,6 +26,7 @@ class WordCount {
       .map((_,1))
       .reduceByKey(_+_)
       .saveAsTextFile(hdfs + "wc_hdfs_kdda_result_1")           // 0
+    textFile = sc.textFile (hdfs + "kdda")
     var cachedRdd = textFile.flatMap (_.split (" ")).cache()
     cachedRdd.map ((_, 1))
       .reduceByKey (_ + _)
@@ -52,6 +53,7 @@ class WordCount {
       .map((_,1))
       .reduceByKey(_+_)
       .saveAsTextFile(hdfs + "wc_hdfs_kddb_result_1")           // 6
+    textFile = sc.textFile (hdfs + "kddb")
     cachedRdd = textFile.flatMap (_.split (" ")).cache()
     cachedRdd.map ((_, 1))
       .reduceByKey (_ + _)
