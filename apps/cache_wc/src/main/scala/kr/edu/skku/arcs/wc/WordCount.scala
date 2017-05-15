@@ -68,7 +68,7 @@ class WordCount {
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
-      sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc_" + file + "_med_result_1")
+      sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc_" + file + "_med_result_1")   //5
       cachedRdd = sc.textFile(alluxio + "wc_" + file + "_med_result_1")
       times (file) ++ (System.currentTimeMillis () - start).toString
 
@@ -84,6 +84,7 @@ class WordCount {
       for ((data, list) <- times) {
         write (data + "\t" + list.mkString ("\t") + "\n")
       }
+      close ()
     }
   }
 
