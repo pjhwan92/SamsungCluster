@@ -40,7 +40,7 @@ class WordCount {
       textFile.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_1") // 0
+        .saveAsTextFile(hdfs + "wc_hdfs_" + file + "_result_1") // 0
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
@@ -48,14 +48,14 @@ class WordCount {
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_2") // 1
+        .saveAsTextFile(hdfs + "wc_hdfs_" + file + "_result_2") // 1
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_hdfs" + file + "_result_3") // 2
+        .saveAsTextFile(hdfs + "wc_hdfs_" + file + "_result_3") // 2
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       // alluxio
@@ -64,19 +64,19 @@ class WordCount {
       textFile.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_alluxio" + file + "_result_1") // 3
+        .saveAsTextFile(hdfs + "wc_alluxio_" + file + "_result_1") // 3
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
-      sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc" + file + "_med_result_1")
-      cachedRdd = sc.textFile(alluxio + "wc" + file + "_med_result_1")
+      sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc_" + file + "_med_result_1")
+      cachedRdd = sc.textFile(alluxio + "wc_" + file + "_med_result_1")
       times (file) ++ (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_alluxio" + file + "_result_2") // 5
+        .saveAsTextFile(hdfs + "wc_alluxio_" + file + "_result_2") // 5
       times (file) ++ (System.currentTimeMillis () - start).toString
     }
 
