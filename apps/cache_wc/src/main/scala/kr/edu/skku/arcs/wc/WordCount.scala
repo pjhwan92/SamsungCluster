@@ -7,10 +7,10 @@ import org.apache.spark.sql.SparkSession
 /**
   * Created by pjh on 5/12/17.
   */
-class WordCount {
+public class WordCount {
   var sc: SparkContext = null
 
-  def WordCount () {
+  def wc () {
     val hdfs = "hdfs://compute11:9000/user/arcs/"
     val alluxio = "hdfs://compute11:19998/"
 
@@ -19,27 +19,50 @@ class WordCount {
     var textFile: RDD[String] = null
 
     sc = spark.sparkContext
-    textFile = sc.textFile (hdfs + "kdda")
-    execute (textFile)
-    execute (textFile)
 
+    // hdfs kdda
+    textFile = sc.textFile (hdfs + "kdda")
+    var cachedRdd = textFile.flatMap (_.split (" "))
+                            .cache()
+    cachedRdd.map ((_, 1))
+             .reduceByKey (_ + _)
+             .saveAsTextFile (hdfs + "hdfs_kdda_result_1")
+    cachedRdd.map ((_, 1))
+             .reduceByKey (_ + _)
+             .saveAsTextFile (hdfs + "hdfs_kdda_result_2")
+
+    // alluxio kdda
     textFile = sc.textFile (alluxio + "kdda")
-    execute (textFile)
-    execute (textFile)
+    cachedRdd = textFile.flatMap (_.split (" "))
+    cachedRdd.map((_, 1))
+             .reduceByKey (_ + _)
+             .saveAsTextFile (alluxio + "alluxio_kdda_result_1")
+    cachedRdd.saveAsTextFile (alluxio + "kdda_med_result_1")
+    sc.textFile (alluxio + "kdda_med_result_1")
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (alluxio + "alluxio_kdda_result_2")
 
     textFile = sc.textFile (hdfs + "kddb")
-    execute (textFile)
-    execute (textFile)
+    cachedRdd = textFile.flatMap (_.split (" "))
+      .cache()
+    cachedRdd.map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "hdfs_kddb_result_1")
+    cachedRdd.map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "hdfs_kddb_result_2")
+
 
     textFile = sc.textFile (alluxio + "kddb")
-    execute (textFile)
-    execute (textFile)
+    cachedRdd = textFile.flatMap (_.split (" "))
+    cachedRdd.map((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (alluxio + "alluxio_kddb_result_1")
+    cachedRdd.saveAsTextFile (alluxio + "kddb_med_result_1")
+    sc.textFile (alluxio + "kddb_med_result_1")
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (alluxio + "alluxio_kddb_result_2")
   }
-
-  def execute (input: RDD[String]): Unit = {
-    input.flatMap (line => line.split (" "))
-         .map (word => (word, 1))
-         .reduceByKey {case (x, y) => x + y}
-  }
-
 }

@@ -5,6 +5,7 @@ package kr.edu.skku.arcs.wc
   */
 object Main {
   def main (args: Array[String]) {
-    new WordCount ()
+    val wc = new WordCount ()
+    wc.wc ()
   }
 }
