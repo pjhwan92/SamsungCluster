@@ -20,18 +20,8 @@ class WordCount {
     var cachedRdd: RDD[_] = null
 
     sc = spark.sparkContext
-
-    // alluxio kdda
     textFile = sc.textFile (hdfs + "kdda")
-    cachedRdd = textFile.flatMap (_.split (" "))
-    cachedRdd.map((_, 1))
-      .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_1")    // 3
-    cachedRdd.saveAsTextFile (alluxio + "wc_kdda_med_result_1") // 4  - mediate rdd
-    sc.textFile (alluxio + "wc_kdda_med_result_1")
-      .map ((_, 1))
-      .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_2")    // 5
+    textFile.count()
 
     // hdfs kdda
     textFile = sc.textFile (hdfs + "kdda")
@@ -47,6 +37,21 @@ class WordCount {
     cachedRdd.map ((_, 1))
       .reduceByKey (_ + _)
       .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_3")          // 2
+
+    // alluxio kdda
+    textFile = sc.textFile (hdfs + "kdda")
+    cachedRdd = textFile.flatMap (_.split (" "))
+    cachedRdd.map((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_1")    // 3
+    cachedRdd.saveAsTextFile (alluxio + "wc_kdda_med_result_1") // 4  - mediate rdd
+    sc.textFile (alluxio + "wc_kdda_med_result_1")
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_2")    // 5
+
+    textFile = sc.textFile (hdfs + "kddb")
+    textFile.count()
 
     // hdfs kddb
     textFile = sc.textFile (hdfs + "kddb")
