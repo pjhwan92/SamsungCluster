@@ -17,23 +17,9 @@ class WordCount {
     //val conf = new SparkConf ().setAppName ("word count");
     val spark = SparkSession.builder.appName ("word count").getOrCreate ()
     var textFile: RDD[String] = null
+    var cachedRdd: RDD[_] = null
 
     sc = spark.sparkContext
-
-    // hdfs kdda
-    textFile = sc.textFile (hdfs + "kdda")
-    textFile.flatMap(_.split(" "))
-      .map((_,1))
-      .reduceByKey(_+_)
-      .saveAsTextFile(hdfs + "wc_hdfs_kdda_result_1")           // 0
-    textFile = sc.textFile (hdfs + "kdda")
-    var cachedRdd = textFile.flatMap (_.split (" ")).cache()
-    cachedRdd.map ((_, 1))
-      .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_2")          // 1
-    cachedRdd.map ((_, 1))
-      .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_3")          // 2
 
     // alluxio kdda
     textFile = sc.textFile (hdfs + "kdda")
@@ -46,6 +32,21 @@ class WordCount {
       .map ((_, 1))
       .reduceByKey (_ + _)
       .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_2")    // 5
+
+    // hdfs kdda
+    textFile = sc.textFile (hdfs + "kdda")
+    textFile.flatMap(_.split(" "))
+      .map((_,1))
+      .reduceByKey(_+_)
+      .saveAsTextFile(hdfs + "wc_hdfs_kdda_result_1")           // 0
+    textFile = sc.textFile (hdfs + "kdda")
+    cachedRdd = textFile.flatMap (_.split (" ")).cache()
+    cachedRdd.map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_2")          // 1
+    cachedRdd.map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_3")          // 2
 
     // hdfs kddb
     textFile = sc.textFile (hdfs + "kddb")
