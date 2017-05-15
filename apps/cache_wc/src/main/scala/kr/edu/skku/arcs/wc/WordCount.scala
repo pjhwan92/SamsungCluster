@@ -62,7 +62,7 @@ class WordCount {
       .reduceByKey(_+_)
       .saveAsTextFile(hdfs + "wc_hdfs_kddb_result_1")           // 6
     cachedRdd = sc.textFile (hdfs + "kddb").cache()
-    cachedRdd.flatMap (_.split (" ")).cache()
+    cachedRdd.flatMap (_.split (" "))
       .map ((_, 1))
       .reduceByKey (_ + _)
       .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_2")          // 7
