@@ -17,6 +17,81 @@ class WordCount {
     //val conf = new SparkConf ().setAppName ("word count");
     val spark = SparkSession.builder.appName ("word count").getOrCreate ()
     var textFile: RDD[String] = null
+    var cachedRdd: RDD[String] = null
+
+    sc = spark.sparkContext
+    textFile = sc.textFile (hdfs + "kdda")
+    textFile.count()
+
+    // hdfs kdda
+    textFile = sc.textFile (hdfs + "kdda")
+    textFile.flatMap(_.split(" "))
+      .map((_,1))
+      .reduceByKey(_+_)
+      .saveAsTextFile(hdfs + "wc_hdfs_kdda_result_1")           // 0
+    cachedRdd = sc.textFile (hdfs + "kdda").cache()
+    cachedRdd.flatMap(_.split(" "))
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_2")          // 1
+    cachedRdd.flatMap(_.split(" "))
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_3")          // 2
+
+    // alluxio kdda
+    textFile = sc.textFile (hdfs + "kdda")
+    textFile.flatMap (_.split (" "))
+      .map((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_1")    // 3
+    sc.textFile (hdfs + "kdda").saveAsTextFile (alluxio + "wc_kdda_med_result_1")
+    cachedRdd = sc.textFile (alluxio + "wc_kdda_med_result_1")
+    cachedRdd.flatMap (_.split (" " ))
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_2")    // 5
+
+    textFile = sc.textFile (hdfs + "kddb")
+    textFile.count()
+
+    // hdfs kddb
+    textFile = sc.textFile (hdfs + "kddb")
+    textFile.flatMap(_.split(" "))
+      .map((_,1))
+      .reduceByKey(_+_)
+      .saveAsTextFile(hdfs + "wc_hdfs_kddb_result_1")           // 6
+    cachedRdd = sc.textFile (hdfs + "kddb").cache()
+    cachedRdd.flatMap (_.split (" ")).cache()
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_2")          // 7
+    cachedRdd.flatMap (_.split (" "))
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_3")          // 8
+
+    // alluxio kddb
+    textFile = sc.textFile (hdfs + "kddb")
+    textFile.flatMap (_.split (" "))
+      .map((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kddb_result_1")    // 9
+    sc.textFile (hdfs + "kdda").saveAsTextFile (alluxio + "wc_kddb_med_result_1")
+    cachedRdd = sc.textFile (alluxio + "wc_kddb_med_result_1")
+    cachedRdd.flatMap (_.split (" " ))
+      .map ((_, 1))
+      .reduceByKey (_ + _)
+      .saveAsTextFile (hdfs + "wc_alluxio_kddb_result_2")    // 5
+  }
+
+  def wc2 () {
+    val hdfs = "hdfs://compute11:9000/user/arcs/"
+    val alluxio = "alluxio://compute11:19998/"
+
+    //val conf = new SparkConf ().setAppName ("word count");
+    val spark = SparkSession.builder.appName ("word count").getOrCreate ()
+    var textFile: RDD[String] = null
     var cachedRdd: RDD[_] = null
 
     sc = spark.sparkContext
