@@ -55,10 +55,10 @@ class WordCount {
     cachedRdd = textFile.flatMap (_.split (" ")).cache()
     cachedRdd.map ((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_1")          // 7
+      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_2")          // 7
     cachedRdd.map ((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_2")          // 8
+      .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_3")          // 8
 
     // alluxio kddb
     textFile = sc.textFile (alluxio + "kddb")
