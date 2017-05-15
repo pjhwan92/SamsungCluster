@@ -13,7 +13,7 @@ class WordCount {
   def wc () {
     val hdfs = "hdfs://compute11:9000/user/arcs/"
     val alluxio = "alluxio://compute11:19998/"
-    val files = List ("_2500", "_5000", "_7500", "_10000")
+    val files = List ("input_25", "input_50", "input_75", "input_100")
 
     //val conf = new SparkConf ().setAppName ("word count");
     val spark = SparkSession.builder.appName ("word count").getOrCreate ()
