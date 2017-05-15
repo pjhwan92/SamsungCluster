@@ -21,10 +21,11 @@ class WordCount {
     var cachedRdd: RDD[String] = null
 
     sc = spark.sparkContext
-    textFile = sc.textFile (hdfs + "")
-    textFile.count()
 
     for (file <- files) {
+      textFile = sc.textFile (hdfs + file)
+      textFile.count()
+
       // hdfs
       textFile = sc.textFile(hdfs + file)
       textFile.flatMap(_.split(" "))
