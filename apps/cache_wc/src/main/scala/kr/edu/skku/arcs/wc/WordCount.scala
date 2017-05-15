@@ -2,6 +2,7 @@ package kr.edu.skku.arcs.wc
 
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 /**
   * Created by pjh on 5/12/17.
@@ -13,11 +14,11 @@ class WordCount {
     val hdfs = "hdfs://compute11:9000/user/arcs/"
     val alluxio = "hdfs://compute11:19998/"
 
-    val conf = new SparkConf ().setAppName ("word count");
+    //val conf = new SparkConf ().setAppName ("word count");
+    val spark = SparkSession.builder.appName ("word count").getOrCreate ()
     var textFile: RDD[String] = null
 
-    sc = new SparkContext (conf)
-
+    sc = spark.sparkContext
     textFile = sc.textFile (hdfs + "kdda")
     execute (textFile)
     execute (textFile)
