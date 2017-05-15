@@ -35,16 +35,16 @@ class WordCount {
       .saveAsTextFile (hdfs + "wc_hdfs_kdda_result_3")          // 2
 
     // alluxio kdda
-    textFile = sc.textFile (alluxio + "kdda")
+    textFile = sc.textFile (hdfs + "kdda")
     cachedRdd = textFile.flatMap (_.split (" "))
     cachedRdd.map((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (alluxio + "wc_alluxio_kdda_result_1")    // 3
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_1")    // 3
     cachedRdd.saveAsTextFile (alluxio + "wc_kdda_med_result_1") // 4  - mediate rdd
     sc.textFile (alluxio + "wc_kdda_med_result_1")
       .map ((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (alluxio + "wc_alluxio_kdda_result_2")    // 5
+      .saveAsTextFile (hdfs + "wc_alluxio_kdda_result_2")    // 5
 
     // hdfs kddb
     textFile = sc.textFile (hdfs + "kddb")
@@ -61,15 +61,15 @@ class WordCount {
       .saveAsTextFile (hdfs + "wc_hdfs_kddb_result_3")          // 8
 
     // alluxio kddb
-    textFile = sc.textFile (alluxio + "kddb")
+    textFile = sc.textFile (hdfs + "kddb")
     cachedRdd = textFile.flatMap (_.split (" "))
     cachedRdd.map((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (alluxio + "wc_alluxio_kddb_result_1")    // 9
+      .saveAsTextFile (hdfs + "wc_alluxio_kddb_result_1")    // 9
     cachedRdd.saveAsTextFile (alluxio + "wc_kddb_med_result_1") // 10  - mediate rdd
     sc.textFile (alluxio + "wc_kddb_med_result_1")
       .map ((_, 1))
       .reduceByKey (_ + _)
-      .saveAsTextFile (alluxio + "wc_alluxio_kddb_result_2")    // 11
+      .saveAsTextFile (hdfs + "wc_alluxio_kddb_result_2")    // 11
   }
 }
