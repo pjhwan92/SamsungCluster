@@ -70,13 +70,17 @@ class WordCount {
       start = System.currentTimeMillis ()
       sc.textFile(hdfs + file).saveAsTextFile(alluxio + "wc_" + file + "_med_result_1")   //5
       cachedRdd = sc.textFile(alluxio + "wc_" + file + "_med_result_1")
+      cachedRdd.flatMap(_.split(" "))
+        .map((_, 1))
+        .reduceByKey(_ + _)
+        .saveAsTextFile(hdfs + "wc_alluxio_" + file + "_result_2") // 5
       times (file) += (System.currentTimeMillis () - start).toString
 
       start = System.currentTimeMillis ()
       cachedRdd.flatMap(_.split(" "))
         .map((_, 1))
         .reduceByKey(_ + _)
-        .saveAsTextFile(hdfs + "wc_alluxio_" + file + "_result_2") // 5
+        .saveAsTextFile(hdfs + "wc_alluxio_" + file + "_result_3") // 5
       times (file) += (System.currentTimeMillis () - start).toString
     }
 
