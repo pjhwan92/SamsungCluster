@@ -19,7 +19,7 @@ class WordCount {
     val hdfs = "hdfs://compute11:9000/user/arcs/"
     val alluxio = "alluxio://compute11:19998/"
     val localPrefix = System.currentTimeMillis.toString
-    val files = List ("input_25", "input_50", "input_75", "input_100")
+    val files = List ("input_200", "input_300", "input_400", "input_500")
     val times: Map[String, ListBuffer[String]] = files.map ((_, ListBuffer[String] ())).toMap
 
     //val conf = new SparkConf ().setAppName ("word count");
