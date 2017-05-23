@@ -427,6 +427,10 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, val rpcEnv: Rp
 
   def sufficientResourcesRegistered(): Boolean = true
 
+  override def isReady(taskId: Long, appId: String, execId: String): Boolean = {
+    executorDataMap(execId).executorEndpoint.askWithRetry[Boolean] (IsReady(taskId, appId))
+  }
+
   override def isReady(): Boolean = {
     if (sufficientResourcesRegistered) {
       logInfo("SchedulerBackend is ready for scheduling beginning after " +

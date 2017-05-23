@@ -50,6 +50,9 @@ private[spark] object CoarseGrainedClusterMessages {
   case class RegisterExecutorFailed(message: String) extends CoarseGrainedClusterMessage
     with RegisterExecutorResponse
 
+  // Driver to executor with reply
+  case class IsReady(taskid: Long, appId: String) extends CoarseGrainedClusterMessage
+
   // Executors to driver
   case class RegisterExecutor(
       executorId: String,

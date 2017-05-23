@@ -477,7 +477,7 @@ private[spark] class TaskSetManager(
 
         sched.dagScheduler.taskStarted(task, info)
         new TaskDescription(taskId = taskId, attemptNumber = attemptNum, execId,
-          taskName, index, serializedTask)
+          taskName, index, serializedTask, task.appId.toString)
       }
     } else {
       None

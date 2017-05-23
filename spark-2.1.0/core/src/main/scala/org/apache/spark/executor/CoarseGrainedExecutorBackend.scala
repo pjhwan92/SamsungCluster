@@ -17,14 +17,15 @@
 
 package org.apache.spark.executor
 
+import java.io.File
 import java.net.URL
 import java.nio.ByteBuffer
+import java.nio.file.{Files, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.mutable
 import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
-
 import org.apache.spark._
 import org.apache.spark.TaskState.TaskState
 import org.apache.spark.deploy.SparkHadoopUtil
@@ -123,6 +124,17 @@ private[spark] class CoarseGrainedExecutorBackend(
           executor.stop()
         }
       }.start()
+  }
+
+  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
+    case IsReady(taskId, appId) =>
+      val path = env.conf.get("spark.local.dir")
+      if (Files.exists(Paths.get(path + "/" + appId + "/" + taskId.toString + "/prepared"))) {
+        context.reply(true)
+      }
+      else {
+        context.reply(false)
+      }
   }
 
   override def onDisconnected(remoteAddress: RpcAddress): Unit = {

@@ -272,6 +272,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       }
     }
 
+    // add preparing code : arcs
+
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
     blockLocations.toArray(ret);
     return ret;
