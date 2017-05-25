@@ -70,8 +70,7 @@ public final class SparkAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
-   
-    
+    Preconditions.checkNotNull(location);
     if (location.equals(BlockStoreLocation.anyDirInTier("SSD"))) {
       // When SSD tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.
