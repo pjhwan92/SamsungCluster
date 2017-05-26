@@ -428,7 +428,11 @@ class CoarseGrainedSchedulerBackend(scheduler: TaskSchedulerImpl, val rpcEnv: Rp
   def sufficientResourcesRegistered(): Boolean = true
 
   override def isReady(taskId: Long, appId: String, execId: String): Boolean = {
-    executorDataMap(execId).executorEndpoint.askWithRetry[Boolean] (IsReady(taskId, appId))
+    if (conf.get("spark.hadoop.defaultFS").contains("alluxio://")) {
+      executorDataMap(execId).executorEndpoint.askWithRetry[Boolean](IsReady(taskId, appId))
+    } else {
+      true
+    }
   }
 
   override def isReady(): Boolean = {
