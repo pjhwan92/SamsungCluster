@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="6.11.2">
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/underfs/UnderFileSystemCluster.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/underfs/LocalFileSystemCluster.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/master/LocalAlluxioCluster.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/master/LocalAlluxioMaster.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/master/AbstractLocalAlluxioCluster.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/master/ClientPool.java">
+</file>
+<file name="/home/pjh/Workspace/alluxio/minicluster/src/main/java/alluxio/master/MultiMasterLocalAlluxioCluster.java">
+</file>
+</checkstyle>

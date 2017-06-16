@@ -210,7 +210,6 @@ public final class BlockWorkerClientRestServiceHandler {
         Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
         mBlockWorker
             .moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
-        // File temporal move
         return null;
       }
     });

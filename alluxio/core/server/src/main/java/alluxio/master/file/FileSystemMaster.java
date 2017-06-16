@@ -82,13 +82,7 @@ import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.FileSystemCommandOptions;
-import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.PersistCommandOptions;
-import alluxio.thrift.PersistFile;
+import alluxio.thrift.*;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -2682,7 +2676,12 @@ public final class FileSystemMaster extends AbstractMaster {
     public void close() {
       // Nothing to clean up
     }
+
   }
+
+  public void prefetchFile(PrefetchInputSplits splits){
+  }
+
 
   /**
    * Class that contains metrics for FileSystemMaster.

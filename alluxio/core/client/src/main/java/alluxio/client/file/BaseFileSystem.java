@@ -14,19 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.file.options.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -34,6 +22,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
+import alluxio.thrift.PrefetchInputSplits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -316,6 +305,18 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.unmount(path);
       LOG.info("Unmount " + path);
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public void prefetchFile (PrefetchInputSplits splits)
+          throws FileDoesNotExistException, AlluxioException, IOException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.prefetchFile(splits);
+      LOG.info("Prefetch " + splits);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }

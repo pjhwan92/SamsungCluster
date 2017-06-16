@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+  <name>alluxio-integration-mesos</name>
+  <comment>Parent POM for different integrations with Alluxio. NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
+  <projects>
+    <project>alluxio-core-common</project>
+    <project>alluxio-core-server</project>
+    <project>alluxio-core-client</project>
+    <project>alluxio-underfs-hdfs</project>
+    <project>alluxio-underfs-local</project>
+    <project>alluxio-underfs-s3</project>
+    <project>alluxio-underfs-s3a</project>
+    <project>alluxio-underfs-gcs</project>
+    <project>alluxio-underfs-swift</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>

@@ -14,19 +14,13 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.file.options.CompleteFileOptions;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.options.*;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.PrefetchInputSplits;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -336,6 +330,17 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public Void call() throws AlluxioTException, TException {
         mClient.unmount(alluxioPath.toString());
+        return null;
+      }
+    });
+  }
+
+  public synchronized void prefetchFile(final PrefetchInputSplits splits)
+      throws AlluxioException, IOException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.prefetchFile(splits);
         return null;
       }
     });

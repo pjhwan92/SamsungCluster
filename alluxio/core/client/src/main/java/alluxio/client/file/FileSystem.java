@@ -15,19 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.DeleteOptions;
-import alluxio.client.file.options.ExistsOptions;
-import alluxio.client.file.options.FreeOptions;
-import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListStatusOptions;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.OpenFileOptions;
-import alluxio.client.file.options.RenameOptions;
-import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.file.options.*;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
@@ -35,6 +23,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.thrift.PrefetchInputSplits;
 
 import java.io.IOException;
 import java.util.List;
@@ -391,4 +380,6 @@ public interface FileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+
+  void prefetchFile (PrefetchInputSplits splits) throws FileDoesNotExistException, AlluxioException, IOException;
 }

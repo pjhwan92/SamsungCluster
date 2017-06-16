@@ -104,6 +104,16 @@ union FileSystemCommandOptions {
   1: optional PersistCommandOptions persistOptions
 }
 
+struct PrefetchInputSplits {
+	1: list<Split> splits
+}
+
+struct Split {
+	1: list<string> path
+	2: list<i64> start
+	3: list<i64> length
+}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -234,6 +244,13 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void unmount( /** the path of the alluxio mount point */ 1: string alluxioPath)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+	/**
+	 * Request to prefetch for the given splits, especially partitions in Spark, which are the input
+	 * data of the currently scheduled tasks
+	 */
+	void prefetchFile( /** the information of split **/ 1: PrefetchInputSplits splits)
+		throws (1: exception.AlluxioTException e)
 }
 
 /**

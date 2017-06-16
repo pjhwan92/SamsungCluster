@@ -1,0 +1,5 @@
+/home/pjh/Workspace/alluxio/integration/yarn/src/main/java/alluxio/yarn/ApplicationMaster.java
+/home/pjh/Workspace/alluxio/integration/yarn/src/main/java/alluxio/yarn/Client.java
+/home/pjh/Workspace/alluxio/integration/yarn/src/main/java/alluxio/yarn/YarnUtils.java
+/home/pjh/Workspace/alluxio/integration/yarn/src/main/java/alluxio/yarn/CommandBuilder.java
+/home/pjh/Workspace/alluxio/integration/yarn/src/main/java/alluxio/yarn/ContainerAllocator.java

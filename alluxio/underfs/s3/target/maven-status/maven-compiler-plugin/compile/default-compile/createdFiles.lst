@@ -1,0 +1,5 @@
+alluxio/underfs/s3/S3OutputStream.class
+alluxio/underfs/s3/S3Utils.class
+alluxio/underfs/s3/S3InputStream.class
+alluxio/underfs/s3/S3UnderFileSystem.class
+alluxio/underfs/s3/S3UnderFileSystemFactory.class
