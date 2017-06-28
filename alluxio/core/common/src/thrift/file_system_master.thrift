@@ -105,7 +105,8 @@ union FileSystemCommandOptions {
 }
 
 struct PrefetchInputSplits {
-	1: list<Split> splits
+	1: list<string> files
+	2: list<Split> splits
 }
 
 struct Split {

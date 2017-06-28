@@ -6,10 +6,15 @@ import com.google.common.primitives.Ints;
 import java.util.*;
 import alluxio.master.file.meta.InodeTree;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by pjh on 6/15/17.
  */
 public class AlluxioSplit {
+    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
     private List<AlluxioURI> mPaths = null;
     private List<Integer> mStarts = null;
     private List<Integer> mLengths = null;
@@ -18,6 +23,8 @@ public class AlluxioSplit {
     private Map<AlluxioURI, Long> mFileIdMap = null;
 
     public void initializeMapInfo (InodeTree tree) {
+        if (mFileBlockMap.size() > 0) {
+        }
         for (AlluxioURI path : mPaths) {
         }
     }
