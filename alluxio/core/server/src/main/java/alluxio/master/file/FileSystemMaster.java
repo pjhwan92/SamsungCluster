@@ -2658,6 +2658,44 @@ public final class FileSystemMaster extends AbstractMaster {
 		}
 	}
 
+
+	public HashMap<Split, List<Long>> getSplitBlocks(PrefetchInputSplits splits) throws FileDoesNotExistException{
+		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
+		try {
+			HashMap<String, InodeFile> inodeMap = new HashMap<>();
+			for (String file : splits.getFiles()) {
+				AlluxioURI path = new AlluxioURI(file);
+				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
+				inodeMap.put(file, inodePath.getInodeFile());
+			}
+			for (Split split : splits.getSplits()) {
+				List<String> files = split.getPath();
+				List<Long> starts = split.getStart();
+				List<Long> lengths = split.getLength();
+				ArrayList<Long> blocks = new ArrayList<>();
+				for (int i = 0; i < split.getPathSize(); i++) {
+					InodeFile inodeFile = inodeMap.get(files.get(i));
+					long blockLength = inodeFile.getBlockSizeBytes();
+					int startIdx = (int) (starts.get(i) / blockLength);
+					int length = (int) (long) lengths.get(i);
+					do {
+						blocks.add(inodeFile.getBlockIdByIndex(startIdx));
+						startIdx++;
+						length -= blockLength;
+					} while (length > 0);
+				}
+				blocksInSplit.put(split, blocks);
+			}
+		} catch (InvalidPathException e) {
+			LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+		} catch (BlockInfoException e) {
+			LOG.error("Exception trying to get block by index: {}", e.toString());
+		}
+
+		return blocksInSplit;
+	}
+
+
 	/**
 	 * Lost files periodic check.
 	 */
@@ -2690,40 +2728,6 @@ public final class FileSystemMaster extends AbstractMaster {
 			// Nothing to clean up
 		}
 
-	}
-
-	public void prefetchFile(PrefetchInputSplits splits) {
-		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
-		try {
-			HashMap<String, InodeFile> inodeMap = new HashMap<>();
-			for (String file : splits.getFiles()) {
-				AlluxioURI path = new AlluxioURI(file);
-				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
-				inodeMap.put(file, inodePath.getInodeFile());
-			}
-			for (Split split : splits.getSplits()) {
-				List<String> files = split.getPath();
-				List<Long> starts = split.getStart();
-				List<Long> lengths = split.getLength();
-				ArrayList<Long> blocks = new ArrayList<>();
-				for (int i = 0; i < split.getPathSize(); i++) {
-					InodeFile inodeFile = inodeMap.get(files.get(i));
-					long blockLength = inodeFile.getBlockSizeBytes();
-					int startIdx = (int) (starts.get(i) / blockLength);
-					int length = (int) (long) lengths.get(i);
-					do {
-						blocks.add(inodeFile.getBlockIdByIndex(startIdx));
-						startIdx++;
-						length -= blockLength;
-					} while (length >= 0);
-				}
-				blocksInSplit.put(split, blocks);
-			}
-		} catch (InvalidPathException | FileDoesNotExistException e) {
-			LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
-		} catch (BlockInfoException e) {
-			LOG.error("Exception trying to get block by index: {}", e.toString());
-		}
 	}
 
 

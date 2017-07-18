@@ -17,10 +17,7 @@ import alluxio.Constants;
 import alluxio.client.file.options.*;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.PrefetchInputSplits;
+import alluxio.thrift.*;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -29,6 +26,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -335,13 +333,12 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     });
   }
 
-  public synchronized void prefetchFile(final PrefetchInputSplits splits)
+  public synchronized Map<Split,List<Long>> getSplitBlocks(final PrefetchInputSplits splits)
       throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split,List<Long>>>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
-        mClient.prefetchFile(splits);
-        return null;
+      public Map<Split,List<Long>> call() throws AlluxioTException, TException {
+        return mClient.getSplitBlocks(splits);
       }
     });
   }

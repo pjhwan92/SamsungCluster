@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -339,4 +340,5 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
         .setDataPort(mDataServer.getPort())
         .setWebPort(mWebServer.getLocalPort());
   }
+
 }

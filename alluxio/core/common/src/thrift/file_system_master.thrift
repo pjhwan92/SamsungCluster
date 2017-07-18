@@ -250,7 +250,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
 	 * Request to prefetch for the given splits, especially partitions in Spark, which are the input
 	 * data of the currently scheduled tasks
 	 */
-	void prefetchFile( /** the information of split **/ 1: PrefetchInputSplits splits)
+	map<Split,list<i64>> getSplitBlocks( /** the information of split **/ 1: PrefetchInputSplits splits)
 		throws (1: exception.AlluxioTException e)
 }
 

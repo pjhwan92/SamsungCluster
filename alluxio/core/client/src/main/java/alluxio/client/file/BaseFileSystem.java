@@ -23,12 +23,14 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
 import alluxio.thrift.PrefetchInputSplits;
+import alluxio.thrift.Split;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -311,14 +313,16 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void prefetchFile (PrefetchInputSplits splits)
+  public Map<Split,List<Long>> prefetchFile (PrefetchInputSplits splits)
           throws FileDoesNotExistException, AlluxioException, IOException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    Map<Split,List<Long>> map = null;
     try {
-      masterClient.prefetchFile(splits);
+      map = masterClient.getSplitBlocks(splits);
       LOG.info("Prefetch " + splits);
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
+    return map;
   }
 }

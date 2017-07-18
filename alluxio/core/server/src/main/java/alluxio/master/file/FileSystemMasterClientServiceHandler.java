@@ -34,6 +34,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -289,14 +290,11 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void prefetchFile(final PrefetchInputSplits splits) throws AlluxioTException {
-    RpcUtils.call(new RpcCallable<Void>() {
+  public Map<Split,List<Long>> getSplitBlocks(final PrefetchInputSplits splits) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Map<Split,List<Long>>>() {
       @Override
-      public Void call() throws AlluxioException, FileDoesNotExistException {
-        for (Split split : splits.getSplits()) {
-        }
-        mFileSystemMaster.prefetchFile(new PrefetchInputSplits (splits));
-        return null;
+      public Map<Split,List<Long>> call() throws AlluxioException, FileDoesNotExistException {
+        return mFileSystemMaster.getSplitBlocks(new PrefetchInputSplits (splits));
       }
     });
   }
