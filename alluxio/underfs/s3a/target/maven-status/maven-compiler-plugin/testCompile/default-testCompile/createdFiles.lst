@@ -1,5 +1,5 @@
-alluxio/underfs/s3a/S3AOutputStreamTest.class
-alluxio/underfs/s3a/S3AUtilsTest.class
 alluxio/underfs/s3a/S3AUnderFileSystemTest.class
-alluxio/underfs/s3a/S3AUnderFileSystemFactoryTest.class
+alluxio/underfs/s3a/S3AUtilsTest.class
 alluxio/underfs/s3a/S3ADirectOutputStreamTest.class
+alluxio/underfs/s3a/S3AOutputStreamTest.class
+alluxio/underfs/s3a/S3AUnderFileSystemFactoryTest.class

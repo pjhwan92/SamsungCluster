@@ -1,9 +1,0 @@
-#Thu May 11 19:23:39 KST 2017
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/http/SwiftDirectClient.java=1494498104000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/SwiftMockOutputStream.java=1488862449000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/SwiftInputStream.java=1494498104000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/SwiftOutputStream.java=1494498104000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/MidPartLongRange.java=1488862368000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/SwiftUnderFileSystem.java=1494498104000
-/home/pjh/Workspace/alluxio/underfs/swift/src/main/java/alluxio/underfs/swift/SwiftUnderFileSystemFactory.java=1488862449000
-configuration*?=8C1D9EFBB9D652696DC058269C49F722C40E0F22
