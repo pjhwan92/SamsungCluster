@@ -2678,11 +2678,12 @@ public final class FileSystemMaster extends AbstractMaster {
 					long blockLength = inodeFile.getBlockSizeBytes();
 					int startIdx = (int) (starts.get(i) / blockLength);
 					int length = (int) (long) lengths.get(i);
+					int lastBlockId = startIdx + inodeFile.getBlockIds().size();
 					do {
 						blocks.add(inodeFile.getBlockIdByIndex(startIdx));
 						startIdx++;
 						length -= blockLength;
-					} while (length > 0);
+					} while (length > 0 || startIdx > lastBlockId);
 				}
 				blocksInSplit.put(split, blocks);
 			}
