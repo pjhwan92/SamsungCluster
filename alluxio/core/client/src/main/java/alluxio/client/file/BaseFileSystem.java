@@ -14,7 +14,19 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.options.*;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.options.ExistsOptions;
+import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.ListStatusOptions;
+import alluxio.client.file.options.LoadMetadataOptions;
+import alluxio.client.file.options.MountOptions;
+import alluxio.client.file.options.UnmountOptions;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -24,6 +36,7 @@ import alluxio.exception.InvalidPathException;
 
 import alluxio.thrift.PrefetchInputSplits;
 import alluxio.thrift.Split;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -313,10 +326,10 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<Split,List<Long>> prefetchFile (PrefetchInputSplits splits)
+  public Map<Split, List<Long>> prefetchFile(PrefetchInputSplits splits)
           throws FileDoesNotExistException, AlluxioException, IOException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
-    Map<Split,List<Long>> map = null;
+    Map<Split, List<Long>> map = null;
     try {
       map = masterClient.getSplitBlocks(splits);
       LOG.info("Prefetch " + splits);
