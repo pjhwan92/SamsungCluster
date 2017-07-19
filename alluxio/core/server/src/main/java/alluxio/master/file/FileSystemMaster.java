@@ -2682,6 +2682,7 @@ public final class FileSystemMaster extends AbstractMaster {
 					do {
 						blocks.add(inodeFile.getBlockIdByIndex(startIdx));
 						startIdx++;
+						LOG.info("Current metadata is searching for " + new Integer(startIdx).toString());
 						length -= blockLength;
 					} while (length > 0 || startIdx > lastBlockId);
 				}
