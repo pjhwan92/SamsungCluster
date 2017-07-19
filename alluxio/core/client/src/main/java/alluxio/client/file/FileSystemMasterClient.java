@@ -345,7 +345,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Added by pjh
+   * Added by pjh.
    *
    * @param splits abc
    * @return abc
