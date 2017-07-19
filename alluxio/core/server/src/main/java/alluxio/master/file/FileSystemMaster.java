@@ -2661,11 +2661,11 @@ public final class FileSystemMaster extends AbstractMaster {
 
 	public HashMap<Split, List<Long>> getSplitBlocks(PrefetchInputSplits splits) throws FileDoesNotExistException{
 		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
+		HashMap<String, InodeFile> inodeMap = new HashMap<>();
 		try {
-			HashMap<String, InodeFile> inodeMap = new HashMap<>();
 			for (String file : splits.getFiles()) {
 				AlluxioURI path = new AlluxioURI(file);
-				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
+				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
 				inodeMap.put(file, inodePath.getInodeFile());
 			}
 			for (Split split : splits.getSplits()) {
@@ -2682,7 +2682,7 @@ public final class FileSystemMaster extends AbstractMaster {
 					do {
 						blocks.add(inodeFile.getBlockIdByIndex(startIdx));
 						startIdx++;
-						LOG.info("Current metadata is searching for " + new Integer(startIdx).toString());
+						LOG.info("Current metadata is searching for " + Integer.toString(startIdx));
 						length -= blockLength;
 					} while (length > 0 || startIdx > lastBlockId);
 				}
@@ -2693,6 +2693,13 @@ public final class FileSystemMaster extends AbstractMaster {
 		} catch (BlockInfoException e) {
 			LOG.error("Exception trying to get block by index: {}", e.toString());
 		}
+		finally {
+			for (InodeFile inode : inodeMap.values()) {
+				inode.unlockRead ();
+			}
+		}
+
+		LOG.info("Finish calculating split blocks");
 
 		return blocksInSplit;
 	}
