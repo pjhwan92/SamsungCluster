@@ -60,7 +60,7 @@ public final class PrefetchCommand extends AbstractShellCommand {
 
   @Override
   protected int getNumOfArgs() {
-    return 1;
+    return 2;
   }
 
   @Override
@@ -88,7 +88,7 @@ public final class PrefetchCommand extends AbstractShellCommand {
       ArrayList<Long> splitLengths = new ArrayList<> ();
       splitPaths.add (pathName);
       splitStarts.add (Long.parseLong ("0"));
-      splitLengths.add (Long.parseLong ("0"));
+      splitLengths.add (Long.parseLong (args[1]));
       if (!paths.contains (pathName))
         paths.add (pathName);
       splits.add (new Split(splitPaths, splitStarts, splitLengths));
@@ -107,7 +107,7 @@ public final class PrefetchCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "prefetch <path>";
+    return "prefetch <path> <length of a split>";
   }
 
   @Override
