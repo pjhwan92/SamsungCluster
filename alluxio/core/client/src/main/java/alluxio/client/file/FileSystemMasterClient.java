@@ -344,6 +344,14 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     });
   }
 
+  /**
+   * Added by pjh
+   *
+   * @param splits abc
+   * @return abc
+   * @throws AlluxioException abc
+   * @throws IOException abc
+   */
   public synchronized Map<Split, List<Long>> getSplitBlocks(final PrefetchInputSplits splits)
       throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split, List<Long>>>() {
