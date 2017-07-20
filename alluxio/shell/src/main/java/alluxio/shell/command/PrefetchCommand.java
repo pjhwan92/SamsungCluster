@@ -19,6 +19,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.shell.AlluxioShellUtils;
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
