@@ -12,26 +12,15 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
-import alluxio.util.io.PathUtils;
-import com.google.common.base.Joiner;
-import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.io.IOUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -89,8 +78,9 @@ public final class PrefetchCommand extends AbstractShellCommand {
       splitPaths.add(pathName);
       splitStarts.add(Long.parseLong("0"));
       splitLengths.add(Long.parseLong(args[1]));
-      if (!paths.contains(pathName))
+      if (!paths.contains(pathName)) {
         paths.add(pathName);
+      }
       splits.add(new Split(splitPaths, splitStarts, splitLengths));
     }
 
