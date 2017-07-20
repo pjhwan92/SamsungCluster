@@ -24,18 +24,28 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.thrift.*;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.CompleteFileTOptions;
+import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.thrift.CreateFileTOptions;
+import alluxio.thrift.FileBlockInfo;
+import alluxio.thrift.FileInfo;
+import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.InputSplits;
+import alluxio.thrift.ListStatusTOptions;
+import alluxio.thrift.MountTOptions;
+import alluxio.thrift.SetAttributeTOptions;
+import alluxio.thrift.Split;
+import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
-
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is a Thrift handler for file system master RPCs invoked by an Alluxio client.
@@ -289,8 +299,9 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public Map<Split, List<Long>> getSplitBlocks(final InputSplits splits) throws AlluxioTException, TException {
-    return RpcUtils.call(new RpcCallable<Map<Split, List<Long>>> () {
+  public Map<Split, List<Long>> getSplitBlocks(final InputSplits splits)
+      throws AlluxioTException, TException {
+    return RpcUtils.call(new RpcCallable<Map<Split, List<Long>>>() {
       @Override
       public Map<Split, List<Long>> call() throws AlluxioException {
         return mFileSystemMaster.getSplitBlocks(splits);

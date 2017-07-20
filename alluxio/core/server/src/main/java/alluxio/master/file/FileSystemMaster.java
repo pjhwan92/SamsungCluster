@@ -2619,55 +2619,55 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return map of block metadata
    */
   protected HashMap<Split, List<Long>> getSplitBlocks(InputSplits splits) {
-		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
-		HashMap<String, InodeFile> inodeMap = new HashMap<>();
+    HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
+    HashMap<String, InodeFile> inodeMap = new HashMap<>();
 
-		try {
-			for (String file : splits.getFiles()) {
-				AlluxioURI path = new AlluxioURI(file);
-				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
-				inodeMap.put(file, inodePath.getInodeFile());
-			}
+    try {
+      for (String file : splits.getFiles()) {
+        AlluxioURI path = new AlluxioURI(file);
+        LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
+        inodeMap.put(file, inodePath.getInodeFile());
+      }
 
-			for (Split split : splits.getSplits()) {
-				List<String> files = split.getPath();
-				List<Long> starts = split.getStart();
-				List<Long> lengths = split.getLength();
-				ArrayList<Long> blocks = new ArrayList<>();
+      for (Split split : splits.getSplits()) {
+        List<String> files = split.getPath();
+        List<Long> starts = split.getStart();
+        List<Long> lengths = split.getLength();
+        ArrayList<Long> blocks = new ArrayList<>();
 
-				for (int i = 0; i < split.getPathSize(); i++) {
-					InodeFile inodeFile = inodeMap.get(files.get(i));
-					long blockLength = inodeFile.getBlockSizeBytes();
-					int startIdx = (int) (starts.get(i) / blockLength);
-					int length = (int) (long) lengths.get(i);
-					int lastBlockId = startIdx + inodeFile.getBlockIds().size();
+        for (int i = 0; i < split.getPathSize(); i++) {
+          InodeFile inodeFile = inodeMap.get(files.get(i));
+          long blockLength = inodeFile.getBlockSizeBytes();
+          int startIdx = (int) (starts.get(i) / blockLength);
+          int length = (int) (long) lengths.get(i);
+          int lastBlockId = startIdx + inodeFile.getBlockIds().size();
 
-					do {
-						blocks.add (inodeFile.getBlockIdByIndex(startIdx));
-						startIdx++;
-						LOG.info("Current metadata is searching for " + Integer.toString(startIdx)
-								+ "(Block Size : " + Long.toString(blockLength) + ")");
-						length -= blockLength;
-					} while (length > 0 || startIdx > lastBlockId);
-				}
-				blocksInSplit.put (split, blocks);
-			}
-		} catch (FileDoesNotExistException e) {
-			LOG.error("Exception trying to access file: {}", e.toString());
-		} catch (InvalidPathException e) {
-			LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
-		} catch (BlockInfoException e) {
-			LOG.error("Exception trying to get block by index: {}", e.toString());
-		} finally {
-		  for (InodeFile inode : inodeMap.values()) {
-		    inode.unlockRead();
+          do {
+            blocks.add (inodeFile.getBlockIdByIndex(startIdx));
+            startIdx++;
+            LOG.info("Current metadata is searching for " + Integer.toString(startIdx)
+                + "(Block Size : " + Long.toString(blockLength) + ")");
+            length -= blockLength;
+          } while (length > 0 || startIdx > lastBlockId);
+        }
+        blocksInSplit.put (split, blocks);
+      }
+    } catch (FileDoesNotExistException e) {
+      LOG.error("Exception trying to access file: {}", e.toString());
+    } catch (InvalidPathException e) {
+      LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+    } catch (BlockInfoException e) {
+      LOG.error("Exception trying to get block by index: {}", e.toString());
+    } finally {
+      for (InodeFile inode : inodeMap.values()) {
+        inode.unlockRead();
       }
     }
 
     LOG.info("Finish calculating split blocks");
 
-		return blocksInSplit;
-	}
+    return blocksInSplit;
+  }
 
   /**
    * Lost files periodic check.
