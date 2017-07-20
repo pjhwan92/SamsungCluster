@@ -2618,7 +2618,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param splits input splits
    * @return map of block metadata
    */
-	private HashMap<Split, List<Long>> getSplitBlocks(InputSplits splits) {
+  protected HashMap<Split, List<Long>> getSplitBlocks(InputSplits splits) {
 		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
 		HashMap<String, InodeFile> inodeMap = new HashMap<>();
 
