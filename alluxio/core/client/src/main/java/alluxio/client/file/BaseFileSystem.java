@@ -36,6 +36,7 @@ import alluxio.exception.InvalidPathException;
 
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -333,6 +334,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       map = masterClient.getSplitBlocks(splits);
       LOG.info("Prefetch " + splits);
+    } catch (IOException e) {
+      e.printStackTrace();
     } finally {
       mFileSystemContext.releaseMasterClient(masterClient);
     }

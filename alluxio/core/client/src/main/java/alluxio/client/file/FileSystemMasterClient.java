@@ -24,7 +24,11 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.*;
+import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.Split;
+import alluxio.thrift.InputSplits;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -348,7 +352,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Map<Split, List<Long>> getSplitBlocks (final InputSplits splits)
+  public synchronized Map<Split, List<Long>> getSplitBlocks(final InputSplits splits)
       throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split, List<Long>>>() {
       @Override

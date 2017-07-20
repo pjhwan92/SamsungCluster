@@ -402,5 +402,5 @@ public interface FileSystem {
    * @return map of input data
    * @throws AlluxioException if an Alluxio exception occurs
    */
-  Map<Split, List<Long>> prefetchFiles (InputSplits splits) throws AlluxioException;
+  Map<Split, List<Long>> prefetchFiles(InputSplits splits) throws AlluxioException;
 }
