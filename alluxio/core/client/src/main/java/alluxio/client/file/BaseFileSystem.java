@@ -36,6 +36,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
