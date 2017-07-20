@@ -24,7 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
-import alluxio.thrift.PrefetchInputSplits;
+import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
 import alluxio.util.io.PathUtils;
 import com.google.common.base.Joiner;
@@ -65,7 +65,7 @@ public final class PrefetchCommand extends AbstractShellCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options ();
+    return new Options();
   }
 
   @Override
@@ -77,31 +77,31 @@ public final class PrefetchCommand extends AbstractShellCommand {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(filePath.getPath()));
     }
-    ArrayList<String> paths = new ArrayList<> ();
-    ArrayList<Split> splits = new ArrayList<> ();
+    ArrayList<String> paths = new ArrayList<>();
+    ArrayList<Split> splits = new ArrayList<>();
 
     Map<Split, List<Long>> splitListMap = null;
     for (AlluxioURI path : filePaths) {
       String pathName = path.getPath();
-      ArrayList<String> splitPaths = new ArrayList<> ();
-      ArrayList<Long> splitStarts = new ArrayList<> ();
-      ArrayList<Long> splitLengths = new ArrayList<> ();
-      splitPaths.add (pathName);
-      splitStarts.add (Long.parseLong ("0"));
-      splitLengths.add (Long.parseLong (args[1]));
-      if (!paths.contains (pathName))
-        paths.add (pathName);
-      splits.add (new Split(splitPaths, splitStarts, splitLengths));
+      ArrayList<String> splitPaths = new ArrayList<>();
+      ArrayList<Long> splitStarts = new ArrayList<>();
+      ArrayList<Long> splitLengths = new ArrayList<>();
+      splitPaths.add(pathName);
+      splitStarts.add(Long.parseLong("0"));
+      splitLengths.add(Long.parseLong(args[1]));
+      if (!paths.contains(pathName))
+        paths.add(pathName);
+      splits.add(new Split(splitPaths, splitStarts, splitLengths));
     }
 
-    splitListMap = mFileSystem.prefetchFile(new PrefetchInputSplits (paths, splits));
+    splitListMap = mFileSystem.prefetchFiles(new InputSplits(paths, splits));
 
     Iterator it = splitListMap.entrySet().iterator();
 
-    while (it.hasNext ()) {
-      Map.Entry pair = (Map.Entry) it.next ();
-      System.out.println (pair.getKey () + " = " + pair.getValue ());
-      it.remove ();
+    while (it.hasNext()) {
+      Map.Entry pair = (Map.Entry) it.next();
+      System.out.println(pair.getKey() + " = " + pair.getValue());
+      it.remove();
     }
   }
 
