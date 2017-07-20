@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public final class LocalBlockInStream extends BufferedBlockInStream {
-  /** Helper to manage closeables. */
+  /** Helper to manage closables. */
   private final Closer mCloser;
   /** Client to communicate with the local worker. */
   private final BlockWorkerClient mBlockWorkerClient;
@@ -57,8 +57,8 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mContext = context;
 
     mCloser = Closer.create();
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
       LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
       if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
@@ -66,7 +66,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       mReader = new LocalFileBlockReader(result.getBlockPath());
       mCloser.register(mReader);
     } catch (IOException e) {
-      mCloser.close();
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -89,12 +89,14 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       }
       mBlockWorkerClient.unlockBlock(mBlockId);
     } finally {
-      mClosed = true;
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       mCloser.close();
       if (mBuffer != null && mBuffer.isDirect()) {
         BufferUtils.cleanDirectBuffer(mBuffer);
       }
     }
+
+    mClosed = true;
   }
 
   @Override

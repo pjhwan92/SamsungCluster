@@ -17,7 +17,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
-import com.google.common.io.Closer;
 
 import java.io.IOException;
 
@@ -32,7 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
   private final BlockWorkerClient mBlockWorkerClient;
-  private final Closer mCloser;
 
   /**
    * Creates a new block output stream on a specific address.
@@ -48,15 +46,13 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       WorkerNetAddress address,
       BlockStoreContext blockStoreContext) throws IOException {
     super(blockId, blockSize, blockStoreContext);
-    mCloser = Closer.create();
+    mRemoteWriter = RemoteBlockWriter.Factory.create();
+    mBlockWorkerClient = mContext.acquireWorkerClient(address);
     try {
-      mRemoteWriter = mCloser.register(RemoteBlockWriter.Factory.create());
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(address));
-
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
           mBlockWorkerClient.getSessionId());
     } catch (IOException e) {
-      mCloser.close();
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -66,13 +62,13 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
+    mRemoteWriter.close();
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mClosed = true;
-      mCloser.close();
+      releaseAndClose();
     }
   }
 
@@ -81,26 +77,25 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
-
-    try {
-      flush();
-      if (mFlushedBytes > 0) {
-        try {
-          mBlockWorkerClient.cacheBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
-        Metrics.BLOCKS_WRITTEN_REMOTE.inc();
-      } else {
-        try {
-          mBlockWorkerClient.cancelBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+    flush();
+    mRemoteWriter.close();
+    if (mFlushedBytes > 0) {
+      try {
+        mBlockWorkerClient.cacheBlock(mBlockId);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      } finally {
+        releaseAndClose();
       }
-    } finally {
-      mClosed = true;
-      mCloser.close();
+      Metrics.BLOCKS_WRITTEN_REMOTE.inc();
+    } else {
+      try {
+        mBlockWorkerClient.cancelBlock(mBlockId);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      } finally {
+        releaseAndClose();
+      }
     }
   }
 
@@ -119,6 +114,14 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter.write(b, off, len);
     mFlushedBytes += len;
     Metrics.BYTES_WRITTEN_REMOTE.inc(len);
+  }
+
+  /**
+   * Releases {@link #mBlockWorkerClient} and sets {@link #mClosed} to true.
+   */
+  private void releaseAndClose() {
+    mContext.releaseWorkerClient(mBlockWorkerClient);
+    mClosed = true;
   }
 
   /**

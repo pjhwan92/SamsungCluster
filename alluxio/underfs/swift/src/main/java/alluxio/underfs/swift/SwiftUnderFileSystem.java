@@ -104,7 +104,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   public SwiftUnderFileSystem(AlluxioURI uri) {
     super(uri);
-    String containerName = getContainerName(uri);
+    String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
 
@@ -754,15 +754,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     return SwiftDirectClient.put(mAccess,
         CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
-  }
-
-  /**
-   * Get container name from AlluxioURI.
-   * @param uri URI used to construct Swift UFS
-   * @return the container name from the given uri
-   */
-  protected static String getContainerName(AlluxioURI uri) {
-    return uri.getAuthority();
   }
 
   @Override

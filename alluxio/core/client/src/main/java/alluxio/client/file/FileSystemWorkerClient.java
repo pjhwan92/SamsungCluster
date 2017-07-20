@@ -44,7 +44,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,15 +65,6 @@ public class FileSystemWorkerClient
       ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
   private static final ExecutorService HEARTBEAT_CANCEL_POOL = Executors.newFixedThreadPool(5,
       ThreadFactoryUtils.build("file-worker-heartbeat-cancel-%d", true));
-
-  // Tracks the number of active heartbeats.
-  private static final AtomicInteger NUM_ACTIVE_SESSIONS = new AtomicInteger(0);
-
-  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      CLIENT_POOLS = new ConcurrentHashMapV8<>();
-  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
-      HEARTBEAT_CLIENT_POOLS = new ConcurrentHashMapV8<>();
-
   /** The current session id, managed by the caller. */
   private final long mSessionId;
 
@@ -83,7 +73,12 @@ public class FileSystemWorkerClient
   /** Address of the rpc server on the worker. */
   private final InetSocketAddress mWorkerRpcServerAddress;
 
-  private final ScheduledFuture<?> mHeartbeat;
+  private ScheduledFuture<?> mHeartbeat = null;
+
+  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
+      CLIENT_POOLS = new ConcurrentHashMapV8<>();
+  private static final ConcurrentHashMapV8<InetSocketAddress, FileSystemWorkerThriftClientPool>
+      HEARTBEAT_CLIENT_POOLS = new ConcurrentHashMapV8<>();
 
   /**
    * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
@@ -97,13 +92,6 @@ public class FileSystemWorkerClient
     mWorkerRpcServerAddress = NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mSessionId = sessionId;
-
-    // Register the session before any RPCs for this session start.
-    try {
-      sessionHeartbeat();
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
 
     // The heartbeat is scheduled to run in a fixed rate. The heartbeat won't consume a thread
     // from the pool while it is not running.
@@ -121,7 +109,12 @@ public class FileSystemWorkerClient
         }, Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS),
         Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
 
-    NUM_ACTIVE_SESSIONS.incrementAndGet();
+    // Register the session before any RPCs for this session start.
+    try {
+      sessionHeartbeat();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
@@ -141,7 +134,6 @@ public class FileSystemWorkerClient
         @Override
         public void run() {
           mHeartbeat.cancel(true);
-          NUM_ACTIVE_SESSIONS.decrementAndGet();
         }
       });
     }
@@ -220,7 +212,7 @@ public class FileSystemWorkerClient
    * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
    * @throws IOException if an error occurs interacting with the UFS
    */
-  public long createUfsFile(final AlluxioURI path, final CreateUfsFileOptions options)
+  public synchronized long createUfsFile(final AlluxioURI path, final CreateUfsFileOptions options)
       throws AlluxioException, IOException {
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
@@ -248,7 +240,7 @@ public class FileSystemWorkerClient
    * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
    * @throws IOException if an error occurs interacting with the UFS
    */
-  public long openUfsFile(final AlluxioURI path, final OpenUfsFileOptions options)
+  public synchronized long openUfsFile(final AlluxioURI path, final OpenUfsFileOptions options)
       throws AlluxioException, IOException {
     return retryRPC(
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {

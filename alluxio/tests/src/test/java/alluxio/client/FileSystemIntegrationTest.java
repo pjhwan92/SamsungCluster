@@ -79,7 +79,7 @@ public final class FileSystemIntegrationTest {
     mFileSystem.createFile(uri, mWriteBoth).close();
     Assert.assertNotNull(mFileSystem.getStatus(uri));
     try {
-      mFileSystem.createFile(uri, mWriteBoth).close();
+      mFileSystem.createFile(uri, mWriteBoth);
     } catch (AlluxioException e) {
       Assert.assertTrue(e instanceof FileAlreadyExistsException);
     }
@@ -89,7 +89,7 @@ public final class FileSystemIntegrationTest {
   public void createFileWithInvalidPathException() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
-    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth).close();
+    mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth);
   }
 
   @Test

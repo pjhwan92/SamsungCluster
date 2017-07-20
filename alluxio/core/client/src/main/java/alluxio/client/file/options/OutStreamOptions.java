@@ -19,7 +19,6 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
@@ -163,22 +162,8 @@ public final class OutStreamOptions {
    * @param perm the permission
    * @return the updated options object
    */
-  // TODO(binfan): remove or deprecate this method
   public OutStreamOptions setPermission(Permission perm) {
     mPermission = perm;
-    return this;
-  }
-
-  /**
-   * Sets the mode in {@link Permission}.
-   *
-   * @param mode the permission
-   * @return the updated options object
-   */
-  public OutStreamOptions setMode(Mode mode) {
-    if (mode != null) {
-      mPermission.setMode(mode);
-    }
     return this;
   }
 

@@ -507,7 +507,7 @@ public class JournalIntegrationTest {
   public void multiEditLog() throws Exception {
     for (int i = 0; i < 124; i++) {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
-      mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
+      mFileSystem.createFile(new AlluxioURI("/a" + i), op);
     }
     mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();

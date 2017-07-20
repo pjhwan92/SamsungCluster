@@ -166,12 +166,11 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
-    try (FileInStream tfis = mFileSystem
-        .openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
-      byte[] read = new byte[length];
-      tfis.read(read);
-      return read;
-    }
+    FileInStream tfis =
+        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE));
+    byte[] read = new byte[length];
+    tfis.read(read);
+    return read;
   }
 
   protected boolean isInMemoryTest(String path) throws IOException, AlluxioException {
@@ -198,10 +197,9 @@ public abstract class AbstractAlluxioShellTest {
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
-    try (FileInStream tfis = mFileSystem.openFile(uri)) {
-      byte[] actual = new byte[size];
-      tfis.read(actual);
-      Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
-    }
+    FileInStream tfis = mFileSystem.openFile(uri);
+    byte[] actual = new byte[size];
+    tfis.read(actual);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
   }
 }

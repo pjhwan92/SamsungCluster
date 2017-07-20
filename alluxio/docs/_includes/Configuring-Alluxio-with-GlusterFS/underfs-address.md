@@ -1,3 +1,3 @@
 ```bash
-alluxio.underfs.address=/mnt/gluster
+ALLUXIO_UNDERFS_ADDRESS=/mnt/gluster
 ```

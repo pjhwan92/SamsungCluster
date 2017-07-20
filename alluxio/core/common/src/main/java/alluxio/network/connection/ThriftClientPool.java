@@ -103,23 +103,13 @@ public abstract class ThriftClientPool<T extends AlluxioService.Client>
     mGcThresholdMs = gcThresholdMs;
   }
 
-  /**
-   * A helper function to close thrift clients.
-   *
-   * @param client the thrift client to close
-   * @param <C> the thrift client type
-   */
-  public static <C extends AlluxioService.Client> void closeThriftClient(C client) {
+  @Override
+  protected void closeResource(T client) {
     // Note that the input and output protocol is the same in Alluxio.
     TTransport transport = client.getOutputProtocol().getTransport();
     if (transport.isOpen()) {
       transport.close();
     }
-  }
-
-  @Override
-  protected void closeResource(T client) {
-    closeThriftClient(client);
   }
 
   @Override

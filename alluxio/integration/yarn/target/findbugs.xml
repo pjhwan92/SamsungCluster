@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<BugCollection version='3.0.1' threshold='low' effort='max'><Error></Error><Project><SrcDir>/home/pjh/Workspace/alluxio/integration/yarn/src/main/java</SrcDir><SrcDir>/home/pjh/Workspace/alluxio/integration/yarn/target/generated-sources/annotations</SrcDir><SrcDir>/home/pjh/Workspace/alluxio/integration/yarn/src/test/java</SrcDir></Project></BugCollection>

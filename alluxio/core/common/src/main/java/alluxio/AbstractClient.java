@@ -41,7 +41,6 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The base class for clients.
  */
-// TODO(peis): Consolidate this to ThriftClientPool.
 @ThreadSafe
 public abstract class AbstractClient implements Client {
 
@@ -202,7 +201,6 @@ public abstract class AbstractClient implements Client {
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new IOException(message, e);
         }
-        // TODO(peis): Consider closing the connection here as well.
         if (!retry.attemptRetry()) {
           break;
         }
@@ -323,7 +321,7 @@ public abstract class AbstractClient implements Client {
         throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        disconnect();
+        mConnected = false;
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
@@ -354,7 +352,7 @@ public abstract class AbstractClient implements Client {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        disconnect();
+        mConnected = false;
       }
     }
     throw new IOException("Failed after " + retry + " retries.");

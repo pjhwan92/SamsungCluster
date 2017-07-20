@@ -28,7 +28,7 @@ Alternatively, you can also create the configuration file from the template and 
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
 `/mnt/gluster`, the following environment variable assignment needs to be added to
-`conf/alluxio-site.properties`:
+`conf/alluxio-env.sh`:
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 

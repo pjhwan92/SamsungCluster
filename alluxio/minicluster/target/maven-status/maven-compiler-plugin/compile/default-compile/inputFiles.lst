@@ -1,7 +1,0 @@
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/master/AbstractLocalAlluxioCluster.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/master/LocalAlluxioCluster.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/underfs/LocalFileSystemCluster.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/master/LocalAlluxioMaster.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/underfs/UnderFileSystemCluster.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/master/ClientPool.java
-/home/arcs/fr/SamsungCluster/alluxio/minicluster/src/main/java/alluxio/master/MultiMasterLocalAlluxioCluster.java

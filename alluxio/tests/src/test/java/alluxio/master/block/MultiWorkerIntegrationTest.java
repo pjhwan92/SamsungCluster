@@ -19,7 +19,6 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
@@ -57,8 +56,6 @@ public final class MultiWorkerIntegrationTest {
             .setLocationPolicy(new RoundRobinPolicy()));
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInMemoryPercentage());
-    try (FileInStream inStream = fs.openFile(file)) {
-      assertEquals(fileSize, IOUtils.toByteArray(inStream).length);
-    }
+    assertEquals(fileSize, IOUtils.toByteArray(fs.openFile(file)).length);
   }
 }

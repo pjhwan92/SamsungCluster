@@ -63,15 +63,16 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     }
 
     mCloser = Closer.create();
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
+
     try {
-      mBlockWorkerClient = mCloser.register(mContext.createWorkerClient(workerNetAddress));
       long initialSize = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
       mWriter = new LocalFileBlockWriter(blockPath);
       mCloser.register(mWriter);
     } catch (IOException e) {
-      mCloser.close();
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -81,13 +82,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
+    mCloser.close();
     try {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {
-      mClosed = true;
-      mCloser.close();
+      releaseAndClose();
     }
   }
 
@@ -96,19 +97,19 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mClosed) {
       return;
     }
-    try {
-      flush();
-      if (mWrittenBytes > 0) {
-        try {
-          mBlockWorkerClient.cacheBlock(mBlockId);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
-        Metrics.BLOCKS_WRITTEN_LOCAL.inc();
+    flush();
+    mCloser.close();
+    if (mWrittenBytes > 0) {
+      try {
+        mBlockWorkerClient.cacheBlock(mBlockId);
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      } finally {
+        releaseAndClose();
       }
-    } finally {
-      mClosed = true;
-      mCloser.close();
+      Metrics.BLOCKS_WRITTEN_LOCAL.inc();
+    } else {
+      releaseAndClose();
     }
   }
 
@@ -143,6 +144,14 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mFlushedBytes += len;
 
     Metrics.BYTES_WRITTEN_LOCAL.inc(len);
+  }
+
+  /**
+   * Releases {@link #mBlockWorkerClient} and sets {@link #mClosed} to true.
+   */
+  private void releaseAndClose() {
+    mContext.releaseWorkerClient(mBlockWorkerClient);
+    mClosed = true;
   }
 
   /**

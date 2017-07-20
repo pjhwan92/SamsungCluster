@@ -14,21 +14,19 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.Split;
-import alluxio.thrift.PrefetchInputSplits;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -37,7 +35,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -340,24 +337,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       public Void call() throws AlluxioTException, TException {
         mClient.unmount(alluxioPath.toString());
         return null;
-      }
-    });
-  }
-
-  /**
-   * Added by pjh.
-   *
-   * @param splits abc
-   * @return abc
-   * @throws AlluxioException abc
-   * @throws IOException abc
-   */
-  public synchronized Map<Split, List<Long>> getSplitBlocks(final PrefetchInputSplits splits)
-      throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split, List<Long>>>() {
-      @Override
-      public Map<Split, List<Long>> call() throws AlluxioTException, TException {
-        return mClient.getSplitBlocks(splits);
       }
     });
   }

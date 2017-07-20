@@ -24,10 +24,10 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
-import alluxio.client.file.options.UnmountOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.options.UnmountOptions;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
@@ -35,12 +35,9 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.thrift.PrefetchInputSplits;
-import alluxio.thrift.Split;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -394,15 +391,4 @@ public interface FileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
-
-  /**
-   * Added by pjh.
-   *
-   * @param splits abs
-   * @return abc
-   * @throws AlluxioException abc
-   * @throws IOException abc
-   */
-  Map<Split, List<Long>> prefetchFile(PrefetchInputSplits splits)
-      throws AlluxioException, IOException;
 }

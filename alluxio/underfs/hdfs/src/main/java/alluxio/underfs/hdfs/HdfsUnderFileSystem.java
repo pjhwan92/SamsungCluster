@@ -358,19 +358,9 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
-          Path dirToMake = dirsToMake.pop();
-          if (!FileSystem.mkdirs(mFileSystem, dirToMake,
+          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(),
               new FsPermission(options.getPermission().getMode().toShort()))) {
             return false;
-          }
-          // Set the owner to the Alluxio client user to achieve permission delegation.
-          // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
-          // proceeds with mkdirs and print out an warning message.
-          try {
-            setOwner(dirToMake.toString(), options.getPermission().getOwner(),
-                options.getPermission().getGroup());
-          } catch (IOException e) {
-            LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
           }
         }
         return true;
@@ -439,14 +429,9 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
-      LOG.warn("In order for Alluxio to set HDFS files with the correct user and groups, "
+      LOG.warn("In order for Alluxio to create HDFS files with the correct user and groups, "
           + "Alluxio should be added to the HDFS superusers.");
-      if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
-        throw e;
-      } else {
-        LOG.warn("Proceeding... but this may cause permission inconsistency between Alluxio and "
-            + "HDFS.");
-      }
+      throw e;
     }
   }
 

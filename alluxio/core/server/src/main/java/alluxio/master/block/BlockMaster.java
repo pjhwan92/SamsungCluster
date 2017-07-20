@@ -804,10 +804,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         .setLength(masterBlockInfo.getLength()).setLocations(locations);
   }
 
-  public void prepareBlocks (List<Long> blockIds) {
-
-	}
-
   /**
    * Reports the ids of the blocks lost on workers.
    *

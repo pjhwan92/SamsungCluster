@@ -106,7 +106,6 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
-    System.exit(0);
   }
 
   private Format() {}  // Prevent instantiation.

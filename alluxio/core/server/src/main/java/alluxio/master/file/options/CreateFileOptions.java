@@ -52,10 +52,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
     mPermission = Permission.defaults().setOwnerFromThriftClient();
-    if (options.isSetMode()) {
-      mDefaultMode = false;
-      mPermission.setMode(options.getMode());
-    }
   }
 
   private CreateFileOptions() {

@@ -11,7 +11,6 @@ struct CreateDirectoryTOptions {
   1: optional bool persisted
   2: optional bool recursive
   3: optional bool allowExists
-  4: optional i16 mode
 }
 
 struct CreateFileTOptions {
@@ -19,7 +18,6 @@ struct CreateFileTOptions {
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
-  5: optional i16 mode
 }
 
 struct MountTOptions {
@@ -102,17 +100,6 @@ struct SetAttributeTOptions {
 
 union FileSystemCommandOptions {
   1: optional PersistCommandOptions persistOptions
-}
-
-struct PrefetchInputSplits {
-	1: list<string> files
-	2: list<Split> splits
-}
-
-struct Split {
-	1: list<string> path
-	2: list<i64> start
-	3: list<i64> length
 }
 
 /**
@@ -245,13 +232,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void unmount( /** the path of the alluxio mount point */ 1: string alluxioPath)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
-
-	/**
-	 * Request to prefetch for the given splits, especially partitions in Spark, which are the input
-	 * data of the currently scheduled tasks
-	 */
-	map<Split,list<i64>> getSplitBlocks( /** the information of split **/ 1: PrefetchInputSplits splits)
-		throws (1: exception.AlluxioTException e)
 }
 
 /**

@@ -10,8 +10,4 @@
 #
 
 # An Alluxio Worker will be started on each of the machines listed below.
-#localhost
-compute12
-compute13
-compute14
-compute15
+localhost
