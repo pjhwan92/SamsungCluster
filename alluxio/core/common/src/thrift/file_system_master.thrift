@@ -102,6 +102,17 @@ union FileSystemCommandOptions {
   1: optional PersistCommandOptions persistOptions
 }
 
+struct InputSplits {
+	1: list<string> files
+	2: list<Split> splits
+}
+
+struct Split {
+	1: list<string> path
+	2: list<i64> start
+	3: list<i64> length
+}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -111,8 +122,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * Marks a file as completed.
    */
   void completeFile( /** the path of the file */ 1: string path,
-      /** the method options */ 2: CompleteFileTOptions options)
-    throws (1: exception.AlluxioTException e)
+      /** the method options */ 2: CompleteFileTOptions options) throws (1: exception.AlluxioTException e)
 
   /**
    * Creates a directory.
@@ -232,6 +242,13 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void unmount( /** the path of the alluxio mount point */ 1: string alluxioPath)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+	
+	/**
+	* Request the information about the given splits, especially partitions in Apache Spark, which
+	* are the metadata of input for the current scheduled tasks
+	*/
+	map<Split, list<i64>> getSplitBlocks ( /** the information of split */ 1: InputSplits splits)
+		throws (1: exception.AlluxioTException e)
 }
 
 /**

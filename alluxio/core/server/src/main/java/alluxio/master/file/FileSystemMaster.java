@@ -81,13 +81,7 @@ import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
-import alluxio.thrift.CommandType;
-import alluxio.thrift.FileSystemCommand;
-import alluxio.thrift.FileSystemCommandOptions;
-import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.PersistCommandOptions;
-import alluxio.thrift.PersistFile;
+import alluxio.thrift.*;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -2617,6 +2611,63 @@ public final class FileSystemMaster extends AbstractMaster {
       // Nothing to clean up
     }
   }
+
+  /**
+   * Added by pjh.
+   *
+   * @param splits input splits
+   * @return map of block metadata
+   */
+	private HashMap<Split, List<Long>> getSplitBlocks(InputSplits splits) {
+		HashMap<Split, List<Long>> blocksInSplit = new HashMap<>();
+		HashMap<String, InodeFile> inodeMap = new HashMap<>();
+
+		try {
+			for (String file : splits.getFiles()) {
+				AlluxioURI path = new AlluxioURI(file);
+				LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
+				inodeMap.put(file, inodePath.getInodeFile());
+			}
+
+			for (Split split : splits.getSplits()) {
+				List<String> files = split.getPath();
+				List<Long> starts = split.getStart();
+				List<Long> lengths = split.getLength();
+				ArrayList<Long> blocks = new ArrayList<>();
+
+				for (int i = 0; i < split.getPathSize(); i++) {
+					InodeFile inodeFile = inodeMap.get(files.get(i));
+					long blockLength = inodeFile.getBlockSizeBytes();
+					int startIdx = (int) (starts.get(i) / blockLength);
+					int length = (int) (long) lengths.get(i);
+					int lastBlockId = startIdx + inodeFile.getBlockIds().size();
+
+					do {
+						blocks.add (inodeFile.getBlockIdByIndex(startIdx));
+						startIdx++;
+						LOG.info("Current metadata is searching for " + Integer.toString(startIdx)
+								+ "(Block Size : " + Long.toString(blockLength) + ")");
+						length -= blockLength;
+					} while (length > 0 || startIdx > lastBlockId);
+				}
+				blocksInSplit.put (split, blocks);
+			}
+		} catch (FileDoesNotExistException e) {
+			LOG.error("Exception trying to access file: {}", e.toString());
+		} catch (InvalidPathException e) {
+			LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+		} catch (BlockInfoException e) {
+			LOG.error("Exception trying to get block by index: {}", e.toString());
+		} finally {
+		  for (InodeFile inode : inodeMap.values()) {
+		    inode.unlockRead();
+      }
+    }
+
+    LOG.info("Finish calculating split blocks");
+
+		return blocksInSplit;
+	}
 
   /**
    * Lost files periodic check.

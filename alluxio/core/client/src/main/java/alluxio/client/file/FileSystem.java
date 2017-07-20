@@ -35,9 +35,12 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.thrift.InputSplits;
+import alluxio.thrift.Split;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -391,4 +394,13 @@ public interface FileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Added by pjh.
+   *
+   * @param splits input splits
+   * @return map of input data
+   * @throws AlluxioException if an Alluxio exception occurs
+   */
+  Map<Split, List<Long>> prefetchFiles (InputSplits splits) throws AlluxioException;
 }

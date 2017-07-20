@@ -24,9 +24,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.*;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -35,6 +33,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -337,6 +336,24 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       public Void call() throws AlluxioTException, TException {
         mClient.unmount(alluxioPath.toString());
         return null;
+      }
+    });
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @param splits input splits
+   * @return map of data
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized Map<Split, List<Long>> getSplitBlocks (final InputSplits splits)
+      throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split, List<Long>>>() {
+      @Override
+      public Map<Split, List<Long>> call() throws AlluxioTException, TException {
+        return mClient.getSplitBlocks(splits);
       }
     });
   }
