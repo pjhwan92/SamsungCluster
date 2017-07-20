@@ -38,7 +38,9 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.Split;
 import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
+
 import com.google.common.base.Preconditions;
+
 import org.apache.thrift.TException;
 
 import javax.annotation.concurrent.NotThreadSafe;
