@@ -81,7 +81,15 @@ import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.Permission;
-import alluxio.thrift.*;
+import alluxio.thrift.CommandType;
+import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemCommandOptions;
+import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.InputSplits;
+import alluxio.thrift.PersistCommandOptions;
+import alluxio.thrift.PersistFile;
+import alluxio.thrift.Split;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
@@ -95,9 +103,9 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerInfo;
-
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.protobuf.Message;
@@ -107,6 +115,7 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -116,8 +125,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The master that handles all file system metadata management.
@@ -2643,14 +2650,14 @@ public final class FileSystemMaster extends AbstractMaster {
           int lastBlockId = startIdx + inodeFile.getBlockIds().size();
 
           do {
-            blocks.add (inodeFile.getBlockIdByIndex(startIdx));
+            blocks.add(inodeFile.getBlockIdByIndex(startIdx));
             startIdx++;
             LOG.info("Current metadata is searching for " + Integer.toString(startIdx)
                 + "(Block Size : " + Long.toString(blockLength) + ")");
             length -= blockLength;
           } while (length > 0 || startIdx > lastBlockId);
         }
-        blocksInSplit.put (split, blocks);
+        blocksInSplit.put(split, blocks);
       }
     } catch (FileDoesNotExistException e) {
       LOG.error("Exception trying to access file: {}", e.toString());
