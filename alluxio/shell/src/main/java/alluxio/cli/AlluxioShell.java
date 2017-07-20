@@ -99,7 +99,6 @@ public final class AlluxioShell implements Closeable {
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
-        System.out.println(cmd.getCommandName());
         mCommands.put(cmd.getCommandName(), cmd);
       }
     }
