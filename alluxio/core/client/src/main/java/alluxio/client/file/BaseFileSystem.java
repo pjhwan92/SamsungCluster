@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -33,19 +34,16 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -333,6 +331,16 @@ public class BaseFileSystem implements FileSystem {
 
     try {
       map = masterClient.getSplitBlocks(splits);
+      AlluxioBlockStore blockStore = mFileSystemContext.getAlluxioBlockStore();
+      System.out.println("-- Location informations --")
+      for (Map.Entry<Split, List<Long>> elem : map.entrySet()) {
+        Split key = elem.getKey();
+        System.out.println(key.toString());
+        List<Long> blockIdList = elem.getValue();
+        for (long blockId : blockIdList) {
+          System.out.println("\t- " + blockId + " : " + blockStore.getInfo(blockId).getLocations());
+        }
+      }
       LOG.info("Prefetch " + splits);
     } catch (IOException e) {
       e.printStackTrace();
