@@ -333,7 +333,7 @@ public class BaseFileSystem implements FileSystem {
     try {
       map = masterClient.getSplitBlocks(splits);
       AlluxioBlockStore blockStore = mFileSystemContext.getAlluxioBlockStore();
-      System.out.println("-- Location informations --")
+      System.out.println("-- Location informations --");
       for (Map.Entry<Split, List<Long>> elem : map.entrySet()) {
         Split key = elem.getKey();
         System.out.println(key.toString());
