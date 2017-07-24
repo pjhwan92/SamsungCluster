@@ -25,20 +25,19 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -57,6 +56,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+  private static final int DEFAULT_BLOCK_TRANSFERRING_POOL_SIZE = 10;
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -77,12 +77,18 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private final ExecutorService mBlockRemovalService = Executors.newFixedThreadPool(
       DEFAULT_BLOCK_REMOVER_POOL_SIZE, ThreadFactoryUtils.build("block-removal-service-%d", true));
 
+  /** The thread pool to transfer block. */
+  private final ExecutorService mBlockTransferringService = Executors.newFixedThreadPool(
+      DEFAULT_BLOCK_TRANSFERRING_POOL_SIZE, ThreadFactoryUtils.build("block-transferring-service-%d",
+          true));
+
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
   /** Map from a block Id to whether it has been removed successfully. */
   @GuardedBy("itself")
   private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+  private final Map<Long, Boolean> mTransferringBlockIdToFinished;
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -100,6 +106,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
+    mTransferringBlockIdToFinished = new HashMap<>();
 
     try {
       registerWithMaster();
@@ -205,6 +212,19 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           }
         }
         break;
+      // prefetch data to expected location
+      case Prefetch:
+        long workerId = cmd.getData().get(0);
+        for (long blockId : cmd.getData().subList(1, cmd.getDataSize() - 1)) {
+          synchronized (mTransferringBlockIdToFinished) {
+            if (!mTransferringBlockIdToFinished.containsKey(blockId)) {
+              mTransferringBlockIdToFinished.put(blockId, false);
+              mBlockTransferringService.execute(new BlockTransporter(mBlockWorker,
+                  mTransferringBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, blockId, workerId));
+            }
+          }
+        }
+        break;
       // No action required
       case Nothing:
         break;
@@ -219,6 +239,49 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
+    }
+  }
+
+  /**
+   * Thread to transfer data to the expected location.
+   * Added by pjh.
+   */
+  @NotThreadSafe
+  private class BlockTransporter implements Runnable {
+    private final BlockWorker mBlockWorker;
+    private final long mSessionId;
+    private final long mBlockId;
+    private final long mWorkerId;
+    private final Map<Long, Boolean> mTransferringBlockIdToFinished;
+
+    public BlockTransporter(BlockWorker blockWorker, Map<Long, Boolean> transferringBlockIdToFinished,
+        long sessionId, long blockId, long workerId) {
+      mBlockWorker = blockWorker;
+      mSessionId = sessionId;
+      mTransferringBlockIdToFinished = transferringBlockIdToFinished;
+      mBlockId = blockId;
+      mWorkerId = workerId;
+    }
+
+    @Override
+    public void run() {
+      boolean success = false;
+      try {
+        mBlockWorker.prefetchBlock(mSessionId, mBlockId, mWorkerId);
+        success = true;
+        synchronized (mTransferringBlockIdToFinished) {
+          mTransferringBlockIdToFinished.put(mBlockId, true);
+        }
+        LOG.info("Block {} prefetched to Worker {} at session {}", mBlockId, mWorkerId, mSessionId);
+      } catch (IOException e) {
+        LOG.warn("Failed master free block cmd for: {}.", mBlockId, e);
+      } finally {
+        if (!success) {
+          synchronized (mTransferringBlockIdToFinished) {
+            mTransferringBlockIdToFinished.remove(mBlockId);
+          }
+        }
+      }
     }
   }
 

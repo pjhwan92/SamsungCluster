@@ -343,4 +343,13 @@ public interface BlockWorker extends Worker {
    * @throws IOException if an I/O error occurs
    */
   FileInfo getFileInfo(long fileId) throws IOException;
+
+  /**
+   * Prefetch block to other worker.
+   * Added by pjh.
+   *
+   * @param blockId block id
+   * @param workerId destination worker id
+   */
+  void prefetchBlock (long sessionId, long blockId, long workerId) throws IOException;
 }

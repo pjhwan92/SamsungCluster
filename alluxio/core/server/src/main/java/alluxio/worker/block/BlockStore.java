@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -265,6 +266,16 @@ interface BlockStore {
    * @throws BlockDoesNotExistException if the block id is not found
    */
   void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
+
+  /**
+   * Prefetch block.
+   * Added by pjh.
+   *
+   * @param sessionId session id
+   * @param blockId block id
+   * @param workerId worker id
+   */
+  void prefetchBlock(long sessionId, long blockId, long workerId) throws AlluxioException;
 
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be

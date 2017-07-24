@@ -425,6 +425,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
   }
 
+  @Override
+  public void prefetchBlock(long sessionId, long blockId, long workerId) throws IOException {
+    try {
+      mBlockStore.prefetchBlock(sessionId, blockId, workerId);
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+  }
+
   /**
    * Creates a file to represent a block denoted by the given block path. This file will be owned
    * by the Alluxio worker but have 777 permissions so processes under users different from the
