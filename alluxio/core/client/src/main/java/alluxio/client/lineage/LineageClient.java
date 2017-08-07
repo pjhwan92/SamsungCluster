@@ -47,7 +47,7 @@ interface LineageClient {
    * @throws AlluxioException if an unexpected alluxio error occurs
    */
   long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job,
-      CreateLineageOptions options) throws FileDoesNotExistException, IOException, AlluxioException;
+      CreateLineageOptions options) throws IOException, AlluxioException;
 
   /**
    * Lists all the lineages.
@@ -73,5 +73,5 @@ interface LineageClient {
    * @throws AlluxioException if an unexpected alluxio error occurs
    */
   boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException;
+      throws IOException, AlluxioException;
 }

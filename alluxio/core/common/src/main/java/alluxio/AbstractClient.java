@@ -292,7 +292,7 @@ public abstract class AbstractClient implements Client {
      *         into {@link AlluxioTException}
      * @throws TException when any exception defined in thrift happens
      */
-    V call() throws AlluxioTException, TException;
+    V call() throws TException;
   }
 
   /**

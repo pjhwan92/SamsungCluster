@@ -291,7 +291,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void deleteStore(AlluxioURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
+      throws IOException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
     mFileSystemMaster.delete(uri, true);
@@ -373,7 +373,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @throws AlluxioException if other Alluxio error occurs
    */
   public synchronized void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
-      throws IOException, FileDoesNotExistException, InvalidPathException, AlluxioException {
+      throws IOException, AlluxioException {
     long fromFileId = getFileId(fromUri);
     long toFileId = getFileId(toUri);
     checkIsCompletePartition(fromFileId, fromUri);

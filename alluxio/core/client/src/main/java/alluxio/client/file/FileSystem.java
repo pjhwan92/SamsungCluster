@@ -77,7 +77,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected exception is thrown
    */
   void createDirectory(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Creates a directory.
@@ -90,7 +90,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #createFile(AlluxioURI, CreateFileOptions)} with default options.
@@ -103,7 +103,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileOutStream createFile(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Creates a file.
@@ -117,7 +117,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #delete(AlluxioURI, DeleteOptions)} with default options.
@@ -129,7 +129,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void delete(AlluxioURI path)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Deletes a file or a directory.
@@ -142,7 +142,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void delete(AlluxioURI path, DeleteOptions options)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #exists(AlluxioURI, ExistsOptions)} with default options.
@@ -153,7 +153,7 @@ public interface FileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
-  boolean exists(AlluxioURI path) throws InvalidPathException, IOException, AlluxioException;
+  boolean exists(AlluxioURI path) throws IOException, AlluxioException;
 
   /**
    * Checks whether a path exists in Alluxio space.
@@ -166,7 +166,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   boolean exists(AlluxioURI path, ExistsOptions options)
-      throws InvalidPathException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #free(AlluxioURI, FreeOptions)} with default options.
@@ -176,7 +176,7 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
-  void free(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException;
+  void free(AlluxioURI path) throws IOException, AlluxioException;
 
   /**
    * Evicts any data under the given path from Alluxio space, but does not delete the data from the
@@ -189,7 +189,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void free(AlluxioURI path, FreeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #getStatus(AlluxioURI, GetStatusOptions)} with default options.
@@ -201,7 +201,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   URIStatus getStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
@@ -214,7 +214,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusOptions)} with default options.
@@ -227,7 +227,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   List<URIStatus> listStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
@@ -242,7 +242,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataOptions)} with default
@@ -256,7 +256,7 @@ public interface FileSystem {
    */
   @Deprecated
   void loadMetadata(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
@@ -270,7 +270,7 @@ public interface FileSystem {
    */
   @Deprecated
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #mount(AlluxioURI, AlluxioURI, MountOptions)} with default
@@ -308,7 +308,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileInStream openFile(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Opens a file for reading.
@@ -321,7 +321,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   FileInStream openFile(AlluxioURI path, OpenFileOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #rename(AlluxioURI, AlluxioURI, RenameOptions)} with default
@@ -334,7 +334,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void rename(AlluxioURI src, AlluxioURI dst)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Renames an existing Alluxio path to another Alluxio path in Alluxio. This operation will be
@@ -348,7 +348,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributeOptions)} with default
@@ -360,7 +360,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void setAttribute(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Sets any number of a path's attributes, such as TTL and pin status.
@@ -372,7 +372,7 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #unmount(AlluxioURI, UnmountOptions)} with default options.

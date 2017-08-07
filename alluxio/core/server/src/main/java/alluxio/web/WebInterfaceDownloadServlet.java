@@ -106,8 +106,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
-      HttpServletResponse response) throws FileDoesNotExistException, IOException,
-      InvalidPathException, AlluxioException {
+      HttpServletResponse response) throws IOException,
+      AlluxioException {
     FileSystem alluxioClient = FileSystem.Factory.get();
     URIStatus status = alluxioClient.getStatus(path);
     long len = status.getLength();

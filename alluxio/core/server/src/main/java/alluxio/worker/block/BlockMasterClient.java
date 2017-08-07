@@ -128,11 +128,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException, ConnectionFailedException {
+      final Map<String, List<Long>> addedBlocks, final List<Long> prefetchedBlocks)
+      throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
-        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks, prefetchedBlocks);
       }
     });
   }
@@ -154,7 +155,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;

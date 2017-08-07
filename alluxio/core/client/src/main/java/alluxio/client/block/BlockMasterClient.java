@@ -15,6 +15,7 @@ import alluxio.Client;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -64,4 +65,11 @@ public interface BlockMasterClient extends Client {
    * @throws IOException if an I/O error occurs
    */
   long getUsedBytes() throws ConnectionFailedException, IOException;
+
+  /**
+   * Request to prefetch
+   *
+   * @param meta block meta
+   */
+  void prefetchSplit(List<PrefetchFromTo> meta) throws IOException, ConnectionFailedException;
 }

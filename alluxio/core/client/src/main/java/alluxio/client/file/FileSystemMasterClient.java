@@ -92,7 +92,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       final CreateDirectoryOptions options) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.createDirectory(path.getPath(), options.toThrift());
         return null;
       }
@@ -111,7 +111,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.createFile(path.getPath(), options.toThrift());
         return null;
       }
@@ -130,7 +130,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.completeFile(path.getPath(), options.toThrift());
         return null;
       }
@@ -149,7 +149,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.remove(path.getPath(), options.isRecursive());
         return null;
       }
@@ -168,7 +168,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.free(path.getPath(), options.isRecursive());
         return null;
       }
@@ -185,7 +185,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
       @Override
-      public URIStatus call() throws AlluxioTException, TException {
+      public URIStatus call() throws TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
       }
     });
@@ -201,7 +201,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.getNewBlockIdForFile(path.getPath());
       }
     });
@@ -218,7 +218,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       final ListStatusOptions options) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<URIStatus>>() {
       @Override
-      public List<URIStatus> call() throws AlluxioTException, TException {
+      public List<URIStatus> call() throws TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
         for (alluxio.thrift.FileInfo fileInfo : mClient
             .listStatus(path.getPath(), options.toThrift())) {
@@ -243,7 +243,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       final LoadMetadataOptions options) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.loadMetadata(path.toString(), options.isRecursive());
       }
     });
@@ -263,7 +263,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
         return null;
       }
@@ -282,7 +282,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.rename(src.getPath(), dst.getPath());
         return null;
       }
@@ -301,7 +301,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.setAttribute(path.getPath(), options.toThrift());
         return null;
       }
@@ -319,7 +319,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.scheduleAsyncPersist(path.getPath());
         return null;
       }
@@ -337,7 +337,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.unmount(alluxioPath.toString());
         return null;
       }
@@ -356,7 +356,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Map<Split, List<Long>>>() {
       @Override
-      public Map<Split, List<Long>> call() throws AlluxioTException, TException {
+      public Map<Split, List<Long>> call() throws TException {
         return mClient.getSplitBlocks(splits);
       }
     });

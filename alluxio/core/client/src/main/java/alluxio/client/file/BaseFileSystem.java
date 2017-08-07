@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -29,22 +30,23 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.thrift.InputSplits;
 import alluxio.thrift.Split;
-
+import alluxio.wire.BlockLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
@@ -71,13 +73,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void createDirectory(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     createDirectory(path, CreateDirectoryOptions.defaults());
   }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.createDirectory(path, options);
@@ -89,13 +91,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return createFile(path, CreateFileOptions.defaults());
   }
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFileOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.createFile(path, options);
@@ -108,13 +110,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void delete(AlluxioURI path)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     delete(path, DeleteOptions.defaults());
   }
 
   @Override
   public void delete(AlluxioURI path, DeleteOptions options)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.delete(path, options);
@@ -126,13 +128,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public boolean exists(AlluxioURI path)
-      throws InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return exists(path, ExistsOptions.defaults());
   }
 
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
-      throws InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
@@ -149,13 +151,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void free(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     free(path, FreeOptions.defaults());
   }
 
   @Override
   public void free(AlluxioURI path, FreeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
@@ -167,13 +169,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return getStatus(path, GetStatusOptions.defaults());
   }
 
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       return masterClient.getStatus(path);
@@ -186,13 +188,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return listStatus(path, ListStatusOptions.defaults());
   }
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
@@ -212,7 +214,7 @@ public class BaseFileSystem implements FileSystem {
   @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
@@ -224,7 +226,7 @@ public class BaseFileSystem implements FileSystem {
   @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
@@ -255,13 +257,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return openFile(path, OpenFileOptions.defaults());
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFileOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     URIStatus status = getStatus(path);
     if (status.isFolder()) {
       throw new FileNotFoundException(
@@ -272,13 +274,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     rename(src, dst, RenameOptions.defaults());
   }
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
@@ -291,13 +293,13 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public void setAttribute(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     setAttribute(path, SetAttributeOptions.defaults());
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributeOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
@@ -324,24 +326,21 @@ public class BaseFileSystem implements FileSystem {
     }
   }
 
+
+
   @Override
   public Map<Split, List<Long>> prefetchFiles(InputSplits splits)
       throws AlluxioException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
-    Map<Split, List<Long>> map = null;
+    AlluxioBlockStore blockStore = mFileSystemContext.getAlluxioBlockStore();
+    Map<Split, List<Long>> splitListMap = null;
+    Map<Long, Set<BlockLocation>> blockLocationMap = new HashMap<>();
+
 
     try {
-      map = masterClient.getSplitBlocks(splits);
-      AlluxioBlockStore blockStore = mFileSystemContext.getAlluxioBlockStore();
-      System.out.println("-- Location informations --");
-      for (Map.Entry<Split, List<Long>> elem : map.entrySet()) {
-        Split key = elem.getKey();
-        System.out.println(key.toString());
-        List<Long> blockIdList = elem.getValue();
-        for (long blockId : blockIdList) {
-          System.out.println("\t- " + blockId + " : " + blockStore.getInfo(blockId).getLocations());
-        }
-      }
+      splitListMap = masterClient.getSplitBlocks(splits);
+      blockStore.prefetchSplits(splits, splitListMap);
+
       LOG.info("Prefetch " + splits);
     } catch (IOException e) {
       e.printStackTrace();
@@ -349,6 +348,6 @@ public class BaseFileSystem implements FileSystem {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
 
-    return map;
+    return splitListMap;
   }
 }

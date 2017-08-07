@@ -21,6 +21,7 @@ import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 
 import java.util.List;
 import java.util.Map;
@@ -75,13 +76,14 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
 
   @Override
   public Command heartbeat(final long workerId, final Map<String, Long> usedBytesOnTiers,
-      final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers)
+      final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers,
+      final List<Long> prefetchedBlockIds)
       throws AlluxioTException {
     return RpcUtils.call(new RpcUtils.RpcCallable<Command>() {
       @Override
       public Command call() throws AlluxioException {
         return mBlockMaster
-            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers);
+            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers, prefetchedBlockIds);
       }
     });
   }

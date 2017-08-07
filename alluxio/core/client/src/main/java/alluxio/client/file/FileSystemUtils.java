@@ -148,7 +148,7 @@ public final class FileSystemUtils {
    * @throws AlluxioException if an unexpected Alluxio error occurs
    */
   public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status)
-      throws IOException, FileDoesNotExistException, AlluxioException {
+      throws IOException, AlluxioException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;

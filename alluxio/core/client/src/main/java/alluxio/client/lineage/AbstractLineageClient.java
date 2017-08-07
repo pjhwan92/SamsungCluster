@@ -58,7 +58,7 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   @Override
   public long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job,
-      CreateLineageOptions options) throws FileDoesNotExistException, AlluxioException,
+      CreateLineageOptions options) throws AlluxioException,
       IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob,
@@ -76,7 +76,7 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   @Override
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
+      throws IOException, AlluxioException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());

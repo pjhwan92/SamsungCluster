@@ -86,7 +86,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
       AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.createLineage(inputFiles, outputFiles,
             ThriftUtils.toThrift(job.generateCommandLineJobInfo()));
       }
@@ -106,7 +106,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
       @Override
-      public Boolean call() throws AlluxioTException, TException {
+      public Boolean call() throws TException {
         return mClient.deleteLineage(lineageId, cascade);
       }
     });
@@ -124,10 +124,10 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
-      final long ttl) throws IOException, LineageDoesNotExistException, AlluxioException {
+      final long ttl) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
-      public Long call() throws AlluxioTException, TException {
+      public Long call() throws TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
       }
     });
@@ -164,7 +164,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
   public synchronized void reportLostFile(final String path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.reportLostFile(path);
         return null;
       }

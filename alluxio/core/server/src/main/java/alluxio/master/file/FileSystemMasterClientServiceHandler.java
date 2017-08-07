@@ -302,7 +302,7 @@ public final class FileSystemMasterClientServiceHandler implements
 
   @Override
   public Map<Split, List<Long>> getSplitBlocks(final InputSplits splits)
-      throws AlluxioTException, TException {
+      throws TException {
     return RpcUtils.call(new RpcCallable<Map<Split, List<Long>>>() {
       @Override
       public Map<Split, List<Long>> call() throws AlluxioException {

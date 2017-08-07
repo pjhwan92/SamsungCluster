@@ -153,7 +153,7 @@ public class FileSystemWorkerClient
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
-          throws AlluxioTException, TException {
+          throws TException {
         client.cancelUfsFile(mSessionId, tempUfsFileId, options.toThrift());
         return null;
       }
@@ -174,7 +174,7 @@ public class FileSystemWorkerClient
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, FileSystemWorkerClientService.Client>() {
       @Override
       public Void call(FileSystemWorkerClientService.Client client)
-          throws AlluxioTException, TException {
+          throws TException {
         client.closeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
         return null;
       }
@@ -197,7 +197,7 @@ public class FileSystemWorkerClient
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
           public Long call(FileSystemWorkerClientService.Client client)
-              throws AlluxioTException, TException {
+              throws TException {
             return client.completeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
           }
         });
@@ -218,7 +218,7 @@ public class FileSystemWorkerClient
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
           public Long call(FileSystemWorkerClientService.Client client)
-              throws AlluxioTException, TException {
+              throws TException {
             return client.createUfsFile(mSessionId, path.toString(), options.toThrift());
           }
         });
@@ -246,7 +246,7 @@ public class FileSystemWorkerClient
         new RpcCallableThrowsAlluxioTException<Long, FileSystemWorkerClientService.Client>() {
           @Override
           public Long call(FileSystemWorkerClientService.Client client)
-              throws AlluxioTException, TException {
+              throws TException {
             return client.openUfsFile(mSessionId, path.toString(), options.toThrift());
           }
         });

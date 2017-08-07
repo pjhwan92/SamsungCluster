@@ -31,7 +31,9 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.FileInfo;
+import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
@@ -41,7 +43,6 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
-
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -49,15 +50,15 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker.
@@ -426,9 +427,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void prefetchBlock(long sessionId, long blockId, long workerId) throws IOException {
+  public void prefetchBlock(long sessionId, List<Long> blockId, alluxio.thrift.BlockLocation worker) throws IOException {
     try {
-      mBlockStore.prefetchBlock(sessionId, blockId, workerId);
+      mBlockStore.prefetchBlock(sessionId, blockId, ThriftUtils.fromThrift(worker));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

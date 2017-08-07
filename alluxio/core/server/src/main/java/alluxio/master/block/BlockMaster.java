@@ -47,11 +47,14 @@ import alluxio.thrift.CommandType;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
+import alluxio.web.WebInterfaceGeneralServlet;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.block.meta.StorageTierView;
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
@@ -376,6 +379,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
   }
 
+  public void prefetchSplit(List<PrefetchFromTo> metas) {
+    m
+  }
+
   /**
    * @return a new block container id
    */
@@ -678,7 +685,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return an optional command for the worker to execute
    */
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      List<Long> prefetchedBlockIds) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -691,6 +699,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerPrefetchedBlocks(worker, prefetchedBlockIds);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
@@ -732,6 +741,28 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         if (block.getNumLocations() == 0) {
           mLostBlocks.add(removedBlockId);
         }
+      }
+    }
+  }
+
+  /** Updates the worker and block metadata for blocks prefetched to a worker.
+   *  Added by pjh.
+   *
+   * @param workerInfo worker information
+   * @param prefetchedBlockIds prefetched block ids
+   */
+  private void processWorkerPrefetchedBlocks(MasterWorkerInfo workerInfo,
+    List<Long> prefetchedBlockIds) {
+    for (long blockId : prefetchedBlockIds) {
+      MasterBlockInfo block = mBlocks.get(blockId);
+      if (block == null) {
+        synchronized (block) {
+          workerInfo.addBlock(blockId);
+          block.addWorker(workerInfo.getId(), );
+          mLostBlocks.remove(blockId);
+        }
+      } else {
+        LOG.warn("Failed to prefetch workerId: {} to block Id: {}", workerInfo.getId(), blockId);
       }
     }
   }

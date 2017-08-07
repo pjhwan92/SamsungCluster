@@ -17,25 +17,35 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.resource.CloseableResource;
+import alluxio.thrift.InputSplits;
+import alluxio.thrift.Split;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
- * An instance of this class can be obtained via {@link AlluxioBlockStore#get()}. The methods in
+ * An instance of this class can be obtained via get(). The methods in
  * this class are completely opaque to user input.
  */
 @ThreadSafe
@@ -73,7 +83,7 @@ public final class AlluxioBlockStore {
   /**
    * Creates an Alluxio block store.
    *
-   * @param context the block store context to use for acquiring worker and master clients
+   * @param context       the block store context to use for acquiring worker and master clients
    * @param localHostName the local hostname for the block store
    */
   AlluxioBlockStore(BlockStoreContext context, String localHostName) {
@@ -90,7 +100,7 @@ public final class AlluxioBlockStore {
    */
   public BlockInfo getInfo(long blockId) throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       return masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -99,13 +109,13 @@ public final class AlluxioBlockStore {
 
   /**
    * @return the info of all active block workers
-   * @throws IOException when work info list cannot be obtained from master
+   * @throws IOException      when work info list cannot be obtained from master
    * @throws AlluxioException if network connection failed
    */
   public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, AlluxioException {
     List<BlockWorkerInfo> infoList = new ArrayList<>();
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
         infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
             workerInfo.getUsedBytes()));
@@ -124,7 +134,7 @@ public final class AlluxioBlockStore {
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockInfo blockInfo;
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -161,20 +171,20 @@ public final class AlluxioBlockStore {
   /**
    * Gets a stream to write data to a block. The stream can only be backed by Alluxio storage.
    *
-   * @param blockId the block to write
+   * @param blockId   the block to write
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Alluxio again)
-   * @param address the address of the worker to write the block to, fails if the worker cannot
-   *        serve the request
+   *                  stream is just storing the block in Alluxio again)
+   * @param address   the address of the worker to write the block to, fails if the worker cannot
+   *                  serve the request
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
-   *         streaming fashion
+   * streaming fashion
    * @throws IOException if the block cannot be written
    */
   public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address)
       throws IOException {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-          mContext.acquireMasterClientResource()) {
+               mContext.acquireMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
       } catch (AlluxioException e) {
         throw new IOException(e);
@@ -200,7 +210,7 @@ public final class AlluxioBlockStore {
    */
   public long getCapacityBytes() throws IOException {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       return blockMasterClientResource.get().getCapacityBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
@@ -215,7 +225,7 @@ public final class AlluxioBlockStore {
    */
   public long getUsedBytes() throws IOException {
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       return blockMasterClientResource.get().getUsedBytes();
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
@@ -233,7 +243,7 @@ public final class AlluxioBlockStore {
   public void promote(long blockId) throws IOException {
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-        mContext.acquireMasterClientResource()) {
+             mContext.acquireMasterClientResource()) {
       info = blockMasterClientResource.get().getBlockInfo(blockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -252,6 +262,87 @@ public final class AlluxioBlockStore {
       throw new IOException(e);
     } finally {
       blockWorkerClient.close();
+    }
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @param blockIds         block ids
+   * @param blockLocationMap block id to location map
+   * @return worker info
+   */
+  private List<PrefetchFromTo> selectWorker(final List<Long> blockIds,
+      final Map<Long, BlockInfo> blockLocationMap) {
+    List<BlockLocation> totalLocations = null;
+
+    Map<Long, BlockInfo> tmpMap
+        = Maps.filterKeys(blockLocationMap, new Predicate<Long>() {
+      @Override
+      public boolean apply(Long input) {
+        return blockIds.contains(input);
+      }
+    });
+
+    for (BlockInfo locationSet : tmpMap.values()) {
+      totalLocations.addAll(locationSet.getLocations());
+    }
+
+    List<Map.Entry<BlockLocation, Long>> splitBlocks
+        = new ArrayList<>(CollectionUtils.getCardinalityMap(totalLocations).entrySet());
+    long toWorkerId
+        = Collections.max(splitBlocks, new Comparator<Map.Entry<BlockLocation, Long>>() {
+      @Override
+      public int compare(Map.Entry<BlockLocation, Long> o1, Map.Entry<BlockLocation, Long> o2) {
+        return o1.getValue().intValue() - o2.getValue().intValue();
+      }
+    }).getKey().getWorkerId();
+
+    List<PrefetchFromTo> ret = new ArrayList<>();
+    for (Map.Entry<BlockLocation, Long> block : splitBlocks) {
+      PrefetchFromTo prefetchBlock = new PrefetchFromTo();
+      prefetchBlock.setFromWorkerId(block.getKey().getWorkerId());
+      prefetchBlock.setToWorkerId(toWorkerId);
+      prefetchBlock.setBlockId(block.getValue());
+      ret.add(prefetchBlock);
+    }
+
+    return ret;
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @param splits       splits
+   * @param splitListMap split to worker map
+   */
+  public void prefetchSplits(InputSplits splits, Map<Split, List<Long>> splitListMap) {
+    Set<Long> allBlocks = new HashSet<>();
+    Map<Long, BlockInfo> blockLocationsMap = new HashMap<>();
+
+    for (List<Long> blocksInSplit : splitListMap.values()) {
+      allBlocks.addAll(blocksInSplit);
+    }
+    for (long blockId : allBlocks) {
+      try {
+        blockLocationsMap.put(blockId, getInfo(blockId));
+      } catch (IOException e) {
+        LOG.error("Error occurs while getting information about block #{}", blockId);
+      }
+    }
+
+    if (blockLocationsMap.isEmpty()) {
+      LOG.info("Blocks which belong to split({}) does not exist on Alluxio", splits);
+    }
+    try (CloseableResource<BlockMasterClient> client = mContext.acquireMasterClientResource ()){
+      for (Map.Entry<Split, List<Long>> blockList : splitListMap.entrySet()) {
+        List<PrefetchFromTo> split = selectWorker(blockList.getValue(), blockLocationsMap);
+        client.get().prefetchSplit(split);
+      }
+    } catch (IOException e) {
+      LOG.error("Worker {} does not response.", location.getWorkerId());
+    } catch (ConnectionFailedException e) {
+      LOG.error("error occurs while connecting to worker");
     }
   }
 }

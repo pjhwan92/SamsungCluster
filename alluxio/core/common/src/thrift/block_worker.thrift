@@ -87,4 +87,11 @@ service BlockWorkerClientService extends common.AlluxioService {
   bool unlockBlock( /** the id of the block being accessed */ 1: i64 blockId,
       /** the id of the current session */ 2: i64 sessionId)
     throws (1: exception.AlluxioTException e)
+
+	/*
+	* Prefetch block to another worker
+	void prefetchBlock( /** block id  1: list<PrefetchFromTo> blockIds,
+			/** the session id  2: i64 sessionId)
+		throws (1: exception.AlluxioTException e)
+		*/
 }

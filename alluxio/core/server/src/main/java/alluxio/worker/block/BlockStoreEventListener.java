@@ -11,6 +11,11 @@
 
 package alluxio.worker.block;
 
+import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
+
+import java.util.List;
+
 /**
  * A listener interface for receiving meta data mutation events of {@link BlockStore}. All the
  * callback methods are triggered only after the actual event has been completed successfully.
@@ -83,4 +88,11 @@ public interface BlockStoreEventListener {
    */
   void onRemoveBlockByWorker(long sessionId, long blockId);
 
+  /**
+   * Added by pjh.
+   *
+   * @param sessionId session id
+   * @param blocks blocks
+   */
+  void onPrefetchBlockByClient(long sessionId, List<PrefetchFromTo> blocks);
 }

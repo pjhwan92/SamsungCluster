@@ -26,14 +26,14 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.ThriftIOException;
-
+import alluxio.wire.BlockLocation;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class is a Thrift handler for block worker RPCs invoked by an Alluxio client.
@@ -250,6 +250,24 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
       }
     });
   }
+
+  /*
+  @Override
+  public void prefetchBlock(final List<Long> blockIds, final alluxio.thrift.BlockLocation worker, final long sessionId)
+      throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        try {
+          mWorker.prefetchBlock(sessionId, blockIds, worker);
+        } catch (IOException e) {
+          LOG.warn("occurs IOException while handling prefetchBlock {} {}",
+              worker, blockIds);
+        }
+        return null;
+      }
+    });
+  }*/
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder.

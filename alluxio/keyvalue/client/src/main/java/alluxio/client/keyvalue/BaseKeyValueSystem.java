@@ -55,7 +55,7 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
 
   @Override
   public void deleteStore(AlluxioURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
+      throws IOException, AlluxioException {
     mMasterClient.deleteStore(uri);
   }
 

@@ -80,7 +80,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
   public boolean addIfAbsent(T element) {
     // COMPATIBILITY: We need to cast mMap to ConcurrentHashMapV8 to make sure the code can compile
     // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
-    return ((ConcurrentHashMapV8<T, Boolean>) mMap).putIfAbsent(element, Boolean.TRUE) == null;
+    return mMap.putIfAbsent(element, Boolean.TRUE) == null;
   }
 
   @Override

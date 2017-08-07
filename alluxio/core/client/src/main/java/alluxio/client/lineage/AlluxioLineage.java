@@ -74,7 +74,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @throws IOException if the master cannot create the lineage
    */
   public long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles, Job job)
-      throws FileDoesNotExistException, AlluxioException, IOException {
+      throws AlluxioException, IOException {
     return createLineage(inputFiles, outputFiles, job, CreateLineageOptions.defaults());
   }
 
@@ -89,7 +89,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @throws AlluxioException if an unexpected alluxio error occurs
    */
   public boolean deleteLineage(long lineageId)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, AlluxioException {
+      throws IOException, AlluxioException {
     return deleteLineage(lineageId, DeleteLineageOptions.defaults());
   }
 

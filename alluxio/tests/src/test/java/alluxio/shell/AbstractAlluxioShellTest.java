@@ -99,8 +99,7 @@ public abstract class AbstractAlluxioShellTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
   }
 
-  protected File generateFileContent(String path, byte[] toWrite) throws IOException,
-      FileNotFoundException {
+  protected File generateFileContent(String path, byte[] toWrite) throws IOException {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);

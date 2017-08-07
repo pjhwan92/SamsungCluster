@@ -38,6 +38,10 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
       BlockStoreLocation newLocation) {}
 
   @Override
+  public void onPrefetchBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) {}
+
+  @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {}
 
   @Override

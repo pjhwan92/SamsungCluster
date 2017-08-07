@@ -61,7 +61,7 @@ public final class LineageFileSystem extends BaseFileSystem {
    * @throws AlluxioException if an unexpected AlluxioException occurs
    */
   private long reinitializeFile(AlluxioURI path, CreateFileOptions options)
-      throws LineageDoesNotExistException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       return masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
@@ -106,7 +106,7 @@ public final class LineageFileSystem extends BaseFileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   public void reportLostFile(AlluxioURI path)
-      throws IOException, FileDoesNotExistException, AlluxioException {
+      throws IOException, AlluxioException {
     LineageMasterClient masterClient = mLineageContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(path.getPath());

@@ -84,7 +84,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
       throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<ByteBuffer>() {
       @Override
-      public ByteBuffer call() throws AlluxioTException, TException {
+      public ByteBuffer call() throws TException {
         return mClient.get(blockId, key);
       }
     });
@@ -107,7 +107,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
       final int numKeys) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<ByteBuffer>>() {
       @Override
-      public List<ByteBuffer> call() throws AlluxioTException, TException {
+      public List<ByteBuffer> call() throws TException {
         return mClient.getNextKeys(blockId, key, numKeys);
       }
     });
@@ -122,7 +122,7 @@ public final class KeyValueWorkerClient extends AbstractClient {
   public synchronized int getSize(final long blockId) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Integer>() {
       @Override
-      public Integer call() throws AlluxioTException, TException {
+      public Integer call() throws TException {
         return mClient.getSize(blockId);
       }
     });

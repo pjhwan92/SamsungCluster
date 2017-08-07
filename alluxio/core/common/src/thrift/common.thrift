@@ -29,6 +29,12 @@ enum CommandType {
 	Prefetch = 6,	// Ask the worker to transfer a block to other
 }
 
+struct PrefetchFromTo {
+	1: i64 fromWorkerId
+	2: i64 toWorkerId
+	3: i64 blockId
+}
+
 struct Command {
   1: CommandType commandType
   2: list<i64> data

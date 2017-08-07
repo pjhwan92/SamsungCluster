@@ -18,10 +18,12 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockInfo;
 import alluxio.thrift.BlockMasterClientService;
+import alluxio.thrift.PrefetchFromTo;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +82,21 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
       @Override
       public Long call() throws AlluxioException {
         return mBlockMaster.getUsedBytes();
+      }
+    });
+  }
+
+  @Override
+  public void prefetchSplit(final List<PrefetchFromTo> thriftMetas) throws AlluxioTException, TException {
+    final List<alluxio.wire.PrefetchFromTo> metas = new ArrayList<>();
+    for (PrefetchFromTo meta : thriftMetas) {
+      metas.add(ThriftUtils.fromThrift(meta));
+    }
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mBlockMaster.prefetchSplit(metas);
+        return null;
       }
     });
   }

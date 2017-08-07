@@ -45,10 +45,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
-    if (previousObject != null && previousObject != object) {
-      return false;
-    }
-    return true;
+    return !(previousObject != null && previousObject != object);
   }
 
   @Override

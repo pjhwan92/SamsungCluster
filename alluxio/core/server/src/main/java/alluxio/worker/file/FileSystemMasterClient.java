@@ -116,7 +116,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       final List<Long> persistedFiles) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<FileSystemCommand>() {
       @Override
-      public FileSystemCommand call() throws AlluxioTException, TException {
+      public FileSystemCommand call() throws TException {
         return mClient.heartbeat(workerId, persistedFiles);
       }
     });

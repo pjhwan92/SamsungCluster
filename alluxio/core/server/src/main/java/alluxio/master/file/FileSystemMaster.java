@@ -1887,7 +1887,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long loadFileMetadataAndJournal(LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options)
-      throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
       return AsyncJournalWriter.INVALID_FLUSH_COUNTER;

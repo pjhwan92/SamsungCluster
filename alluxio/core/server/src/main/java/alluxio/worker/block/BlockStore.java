@@ -16,6 +16,8 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -23,6 +25,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -272,10 +275,9 @@ interface BlockStore {
    * Added by pjh.
    *
    * @param sessionId session id
-   * @param blockId block id
-   * @param workerId worker id
+   * @param blocks Prefetch data from a worker to another
    */
-  void prefetchBlock(long sessionId, long blockId, long workerId) throws AlluxioException;
+  void prefetchBlock(long sessionId, List<PrefetchFromTo> blocks) throws AlluxioException, IOException;
 
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be

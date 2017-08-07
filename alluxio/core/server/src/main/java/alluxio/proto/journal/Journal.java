@@ -777,7 +777,7 @@ public final class Journal {
       SET_ATTRIBUTE(27),
       ENTRY_NOT_SET(0);
       private int value = 0;
-      private EntryCase(int value) {
+      EntryCase(int value) {
         this.value = value;
       }
       public static EntryCase valueOf(int value) {
@@ -814,7 +814,7 @@ public final class Journal {
       public int getNumber() {
         return this.value;
       }
-    };
+    }
 
     public EntryCase
     getEntryCase() {

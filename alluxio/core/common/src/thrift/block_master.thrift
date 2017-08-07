@@ -34,6 +34,12 @@ service BlockMasterClientService extends common.AlluxioService {
    */
   i64 getUsedBytes() throws (1: exception.AlluxioTException e)
 
+	/**
+	 * Added by pjh.
+	 */
+	void prefetchSplit( /** the list of prefetching data */ 1: list<common.PrefetchFromTo> metas)
+		throws (1: exception.AlluxioTException e);
+
   /**
    * Returns a list of workers information.
    */
@@ -67,7 +73,8 @@ service BlockMasterWorkerService extends common.AlluxioService {
   common.Command heartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the map of space used in bytes on all tiers */ 2: map<string, i64> usedBytesOnTiers,
       /** the list of removed block ids */ 3: list<i64> removedBlockIds,
-      /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers)
+      /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers,
+			/** prefetch complete list */ 5: list<i64> prefetchedBlockIds)
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -79,4 +86,5 @@ service BlockMasterWorkerService extends common.AlluxioService {
       /** the map of used bytes on each tier */  4: map<string, i64> usedBytesOnTiers,
       /** the map of list of blocks on each tier */  5: map<string, list<i64>> currentBlocksOnTiers)
     throws (1: exception.AlluxioTException e)
+
 }

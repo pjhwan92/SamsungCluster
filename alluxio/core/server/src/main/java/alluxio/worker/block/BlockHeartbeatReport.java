@@ -24,6 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockHeartbeatReport {
   /** Map of storage tier alias to a list of blocks ids added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
+  /** Map of block id to original location */
+  private final List<Long> mPrefetchedBlocks;
   /** List of block ids removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
 
@@ -33,9 +35,11 @@ public final class BlockHeartbeatReport {
    * @param addedBlocks added blocks
    * @param removedBlocks remove blocks
    */
-  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks) {
+  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks,
+     List<Long> removedBlocks, List<Long> prefetchedBlocks) {
     mAddedBlocks = addedBlocks;
     mRemovedBlocks = removedBlocks;
+    mPrefetchedBlocks = prefetchedBlocks;
   }
 
   /**
@@ -45,6 +49,15 @@ public final class BlockHeartbeatReport {
    */
   public Map<String, List<Long>> getAddedBlocks() {
     return Collections.unmodifiableMap(mAddedBlocks);
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @return a map from block id to original location
+   */
+  public List<Long> getPrefetchedBlocks() {
+    return Collections.unmodifiableList(mPrefetchedBlocks);
   }
 
   /**

@@ -26,10 +26,10 @@ import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.ThriftIOException;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
-
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -37,15 +37,15 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -156,7 +156,7 @@ public final class RetryHandlingBlockWorkerClient
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
-          throws AlluxioTException, TException {
+          throws TException {
         client.cacheBlock(getSessionId(), blockId);
         return null;
       }
@@ -168,7 +168,7 @@ public final class RetryHandlingBlockWorkerClient
     retryRPC(new RpcCallableThrowsAlluxioTException<Void, BlockWorkerClientService.Client>() {
       @Override
       public Void call(BlockWorkerClientService.Client client)
-          throws AlluxioTException, TException {
+          throws TException {
         client.cancelBlock(getSessionId(), blockId);
         return null;
       }
@@ -195,7 +195,7 @@ public final class RetryHandlingBlockWorkerClient
               .Client>() {
             @Override
             public LockBlockResult call(BlockWorkerClientService.Client client)
-                throws AlluxioTException, TException {
+                throws TException {
               return ThriftUtils.fromThrift(client.lockBlock(blockId, getSessionId()));
             }
           });
@@ -214,7 +214,7 @@ public final class RetryHandlingBlockWorkerClient
         new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
           @Override
           public Boolean call(BlockWorkerClientService.Client client)
-              throws AlluxioTException, TException {
+              throws TException {
             return client.promoteBlock(blockId);
           }
         });
@@ -228,7 +228,7 @@ public final class RetryHandlingBlockWorkerClient
           new RpcCallableThrowsAlluxioTException<String, BlockWorkerClientService.Client>() {
             @Override
             public String call(BlockWorkerClientService.Client client)
-                throws AlluxioTException, TException {
+                throws TException {
               return client.requestBlockLocation(getSessionId(), blockId, initialBytes);
             }
           });
@@ -247,7 +247,7 @@ public final class RetryHandlingBlockWorkerClient
           new RpcCallableThrowsAlluxioTException<Boolean, BlockWorkerClientService.Client>() {
             @Override
             public Boolean call(BlockWorkerClientService.Client client)
-                throws AlluxioTException, TException {
+                throws TException {
               return client.requestSpace(getSessionId(), blockId, requestBytes);
             }
           });
@@ -294,6 +294,17 @@ public final class RetryHandlingBlockWorkerClient
       BlockStoreContext.releaseBlockWorkerThriftClientHeartbeat(mRpcAddress, client);
     }
     Metrics.BLOCK_WORKER_HEATBEATS.inc();
+  }
+
+  @Override
+  public void prefetchBlock(final List<Long> blockIds, final BlockLocation worker) throws IOException {
+    retryRPC(new RpcCallable<Void, BlockWorkerClientService.Client>() {
+      @Override
+      public Void call(BlockWorkerClientService.Client client) throws TException {
+        client.prefetchBlock(blockIds, ThriftUtils.toThrift(worker), 0);
+        return null;
+      }
+    });
   }
 
   /**

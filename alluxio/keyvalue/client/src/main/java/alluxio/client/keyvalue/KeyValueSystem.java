@@ -84,7 +84,7 @@ public interface KeyValueSystem {
    * @throws AlluxioException if other Alluxio error occurs
    */
   void deleteStore(AlluxioURI uri)
-      throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException;
+      throws IOException, AlluxioException;
 
   /**
    * Merges one completed key-value store to another completed key-value store.

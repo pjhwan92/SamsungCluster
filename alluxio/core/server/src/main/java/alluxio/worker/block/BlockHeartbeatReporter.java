@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -38,6 +40,9 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
 
+  /** Added by pjh. */
+  private final List<Long> mPrefetchedBlocks;
+
   /**
    * Creates a new instance of {@link BlockHeartbeatReporter}.
    */
@@ -45,6 +50,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     mLock = new Object();
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
+    mPrefetchedBlocks = new ArrayList<>(20);
   }
 
   /**
@@ -58,10 +64,12 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       // Copy added and removed blocks
       Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
       List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
+      List<Long> prefetchedBlocks = new ArrayList<>(mPrefetchedBlocks);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
-      return new BlockHeartbeatReport(addedBlocks, removedBlocks);
+      mPrefetchedBlocks.clear();
+      return new BlockHeartbeatReport(addedBlocks, removedBlocks, prefetchedBlocks);
     }
   }
 
@@ -102,6 +110,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   @Override
+  public void onPrefetchBlockByClient(long sessionId, List<PrefetchFromTo> blocks) {
+    synchronized (mLock) {
+      addBlockToPrefetchedBlocks(blocks);
+    }
+  }
+
+  @Override
   public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     synchronized (mLock) {
@@ -124,6 +139,14 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       mAddedBlocks.get(tierAlias).add(blockId);
     } else {
       mAddedBlocks.put(tierAlias, Lists.newArrayList(blockId));
+    }
+  }
+
+  private void addBlockToPrefetchedBlocks(List<PrefetchFromTo> blockIds) {
+    for (PrefetchFromTo blockId : blockIds) {
+      if (!mPrefetchedBlocks.contains(blockId)) {
+        mPrefetchedBlocks.add(blockId);
+      }
     }
   }
 

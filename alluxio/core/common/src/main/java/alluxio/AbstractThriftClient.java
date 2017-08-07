@@ -81,7 +81,7 @@ public abstract class AbstractThriftClient<C extends AlluxioService.Client> {
      *         into {@link AlluxioTException}
      * @throws TException when any exception defined in thrift happens
      */
-    V call(C client) throws AlluxioTException, TException;
+    V call(C client) throws TException;
   }
 
   /**

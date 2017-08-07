@@ -88,6 +88,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Map from a block Id to whether it has been removed successfully. */
   @GuardedBy("itself")
   private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+
+  /** Map from a block Id to whether it has been transferred successfully. */
+  @GuardedBy("itself")
   private final Map<Long, Boolean> mTransferringBlockIdToFinished;
 
   /**
@@ -154,7 +157,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       cmdFromMaster = mMasterClient
           .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
-              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(), blockReport.getPrefetchedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (Exception e) {
@@ -175,6 +178,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   @Override
   public void close() {
     mBlockRemovalService.shutdown();
+    mBlockTransferringService.shutdown();
   }
 
   /**
@@ -223,6 +227,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
                   mTransferringBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, blockId, workerId));
             }
           }
+          Iterator<Map.Entry<Long, Boolean>> it = mTransferringBlockIdToFinished.entrySet().iterator();
+          while (it.hasNext()) {
+            if (it.next().getValue()) {
+              it.remove();
+            }
+          }
         }
         break;
       // No action required
@@ -254,6 +264,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     private final long mWorkerId;
     private final Map<Long, Boolean> mTransferringBlockIdToFinished;
 
+    /**
+     * Added by pjh.
+     *
+     * @param blockWorker block worker
+     * @param transferringBlockIdToFinished block id list
+     * @param sessionId session id
+     * @param blockId block id
+     * @param workerId worker id
+     */
     public BlockTransporter(BlockWorker blockWorker, Map<Long, Boolean> transferringBlockIdToFinished,
         long sessionId, long blockId, long workerId) {
       mBlockWorker = blockWorker;

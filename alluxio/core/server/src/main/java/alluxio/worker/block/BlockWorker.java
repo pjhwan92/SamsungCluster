@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.thrift.BlockLocation;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.Worker;
@@ -23,6 +24,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -347,9 +349,8 @@ public interface BlockWorker extends Worker {
   /**
    * Prefetch block to other worker.
    * Added by pjh.
-   *
-   * @param blockId block id
-   * @param workerId destination worker id
+   *  @param blockIds block id
+   * @param worker destination worker id
    */
-  void prefetchBlock (long sessionId, long blockId, long workerId) throws IOException;
+  void prefetchBlock (long sessionId, List<Long> blockIds, BlockLocation worker) throws IOException;
 }

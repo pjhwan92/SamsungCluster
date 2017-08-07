@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -22,6 +23,8 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.evictor.EvictionPlan;
@@ -315,6 +318,22 @@ public final class TieredBlockStore implements BlockStore {
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onAccessBlock(sessionId, blockId);
+      }
+    }
+  }
+
+  @Override
+  public void prefetchBlock(long sessionId, List<PrefetchFromTo> blocks) throws AlluxioException, IOException {
+    List<PrefetchFromTo> prefetchedBlocks = new ArrayList<>();
+    for (PrefetchFromTo blockMeta : blocks) {
+      PrefetchFromTo cand = prefetchBlockInternal(sessionId, blockMeta);
+      if (cand != null) {
+        prefetchedBlocks.add(cand);
+      }
+    }
+    synchronized (mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onPrefetchBlockByClient(sessionId, prefetchedBlocks);
       }
     }
   }
@@ -690,6 +709,82 @@ public final class TieredBlockStore implements BlockStore {
       BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, IOException {
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    try {
+      long blockSize;
+      String srcFilePath;
+      String dstFilePath;
+      BlockMeta srcBlockMeta;
+      BlockStoreLocation srcLocation;
+      BlockStoreLocation dstLocation;
+
+      try (LockResource r = new LockResource(mMetadataReadLock)) {
+        if (mMetaManager.hasTempBlockMeta(blockId)) {
+          throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
+        }
+        srcBlockMeta = mMetaManager.getBlockMeta(blockId);
+        srcLocation = srcBlockMeta.getBlockLocation();
+        srcFilePath = srcBlockMeta.getPath();
+        blockSize = srcBlockMeta.getBlockSize();
+      }
+
+      if (!srcLocation.belongsTo(oldLocation)) {
+        throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
+            oldLocation);
+      }
+      TempBlockMeta dstTempBlock =
+          createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
+      if (dstTempBlock == null) {
+        return new MoveBlockResult(false, blockSize, null, null);
+      }
+
+      // When `newLocation` is some specific location, the `newLocation` and the `dstLocation` are
+      // just the same; while for `newLocation` with a wildcard significance, the `dstLocation`
+      // is a specific one with specific tier and dir which belongs to newLocation.
+      dstLocation = dstTempBlock.getBlockLocation();
+
+      // When the dstLocation belongs to srcLocation, simply abort the tempBlockMeta just created
+      // internally from the newLocation and return success with specific block location.
+      if (dstLocation.belongsTo(srcLocation)) {
+        mMetaManager.abortTempBlockMeta(dstTempBlock);
+        return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
+      }
+      dstFilePath = dstTempBlock.getCommitPath();
+
+      // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
+      FileUtils.move(srcFilePath, dstFilePath);
+
+      try (LockResource r = new LockResource(mMetadataWriteLock)) {
+        // If this metadata update fails, we panic for now.
+        // TODO(bin): Implement rollback scheme to recover from IO failures.
+        mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
+      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
+          | WorkerOutOfSpaceException e) {
+        // WorkerOutOfSpaceException is only possible if session id gets cleaned between
+        // createBlockMetaInternal and moveBlockMeta.
+        throw Throwables.propagate(e); // we shall never reach here
+      }
+
+      return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
+    } finally {
+      mLockManager.unlockBlock(lockId);
+    }
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @param sessionId session id
+   * @param block block
+   * @return ret
+   * @throws BlockDoesNotExistException ex
+   * @throws IOException ex
+   * @throws InvalidWorkerStateException ex
+   */
+  private PrefetchFromTo prefetchBlockInternal(long sessionId, PrefetchFromTo block)
+      throws BlockDoesNotExistException, IOException, InvalidWorkerStateException {
+    long blockId = block.getBlockId();
+    long oldLocation = block.getFromWorkerId();
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;

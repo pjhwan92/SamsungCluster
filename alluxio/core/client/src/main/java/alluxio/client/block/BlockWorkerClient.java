@@ -12,12 +12,14 @@
 package alluxio.client.block;
 
 import alluxio.exception.AlluxioException;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * Interface for an Alluxio block worker client.
@@ -123,6 +125,14 @@ public interface BlockWorkerClient extends Closeable {
    * @throws InterruptedException if this thread is interrupted
    */
   void sessionHeartbeat() throws IOException, InterruptedException;
+
+  /**
+   * Added by pjh.
+   *
+   * @param blockIds block id
+   * @param worker worker address
+   */
+  void prefetchBlock(final List<Long> blockIds, final BlockLocation worker) throws IOException;
 
   /**
    * Closes the client.

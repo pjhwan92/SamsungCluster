@@ -77,7 +77,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.completePartition(path.getPath(), info);
         return null;
       }
@@ -95,7 +95,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.completeStore(path.getPath());
         return null;
       }
@@ -112,7 +112,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   public synchronized void createStore(final AlluxioURI path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.createStore(path.getPath());
         return null;
       }
@@ -131,7 +131,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<PartitionInfo>>() {
       @Override
-      public List<PartitionInfo> call() throws AlluxioTException, TException {
+      public List<PartitionInfo> call() throws TException {
         return mClient.getPartitionInfo(path.getPath());
       }
     });
@@ -147,7 +147,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   public synchronized void deleteStore(final AlluxioURI path) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.deleteStore(path.getPath());
         return null;
       }
@@ -166,7 +166,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.renameStore(oldPath.getPath(), newPath.getPath());
         return null;
       }
@@ -183,7 +183,7 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
       throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
+      public Void call() throws TException {
         mClient.mergeStore(fromPath.getPath(), toPath.getPath());
         return null;
       }

@@ -16,20 +16,18 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.PrefetchFromTo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
-
 import org.apache.thrift.TException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
@@ -104,7 +102,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<BlockInfo>() {
       @Override
-      public BlockInfo call() throws AlluxioTException, TException {
+      public BlockInfo call() throws TException {
         return ThriftUtils.fromThrift(mClient.getBlockInfo(blockId));
       }
     });
@@ -138,6 +136,21 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       @Override
       public Long call() throws TException {
         return mClient.getUsedBytes();
+      }
+    });
+  }
+
+  public synchronized void prefetchSplit(final List<PrefetchFromTo> metas)
+    throws IOException, ConnectionFailedException {
+    final List<alluxio.thrift.PrefetchFromTo> thriftMetas = new ArrayList<>();
+    for (PrefetchFromTo meta : metas) {
+      thriftMetas.add(ThriftUtils.toThrift(meta));
+    }
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.prefetchSplit(thriftMetas);
+        return null;
       }
     });
   }
