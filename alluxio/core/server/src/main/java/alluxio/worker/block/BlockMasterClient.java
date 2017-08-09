@@ -170,8 +170,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
    *
    * @param blockId the block id
    * @throws BlockDoesNotExistException if block does not exist in Alluxio or UnderFS
+   * @return the worker information
    */
-  public synchronized WorkerInfo getBlockOwner(final long blockId) throws AlluxioException, IOException {
+  public synchronized WorkerInfo getBlockOwner(final long blockId)
+      throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<WorkerInfo>() {
       @Override
       public WorkerInfo call() throws AlluxioTException, TException {

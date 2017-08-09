@@ -80,7 +80,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   /** The thread pool to prefetch block. */
   private final ExecutorService mBlockPrefetchingService = Executors.newFixedThreadPool(
-      DEFAULT_BLOCK_PREFETCHER_POOL_SIZE, ThreadFactoryUtils.build("block-prefetching-service-%d", true));
+      DEFAULT_BLOCK_PREFETCHER_POOL_SIZE,
+      ThreadFactoryUtils.build("block-prefetching-service-%d", true));
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
@@ -225,7 +226,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
                   mPrefetchingBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, block));
             }
           }
-          Iterator<Map.Entry<Long, Boolean>> it = mPrefetchingBlockIdToFinished.entrySet().iterator();
+          Iterator<Map.Entry<Long, Boolean>> it
+              = mPrefetchingBlockIdToFinished.entrySet().iterator();
           while (it.hasNext()) {
             if (it.next().getValue()) {
               it.remove();
@@ -257,7 +259,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     private final Map<Long, Boolean> mPrefetchingBlockIdToFinished;
 
     public BlockPrefetcher(BlockWorker blockWorker, Map<Long, Boolean> prefetchingBlockIdToFinished,
-       long sessionId, long blockId) {
+        long sessionId, long blockId) {
       mBlockWorker = blockWorker;
       mPrefetchingBlockIdToFinished = prefetchingBlockIdToFinished;
       mSessionId = sessionId;

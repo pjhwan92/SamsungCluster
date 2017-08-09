@@ -350,6 +350,8 @@ public interface BlockWorker extends Worker {
    *
    * @param sessionId the id of client
    * @param blockId the block id
+   * @throws BlockDoesNotExistException if block does not exist
+   * @throws IOException if an I/O error occurs
    */
   void prefetchBlock(long sessionId, long blockId) throws BlockDoesNotExistException, IOException;
 }

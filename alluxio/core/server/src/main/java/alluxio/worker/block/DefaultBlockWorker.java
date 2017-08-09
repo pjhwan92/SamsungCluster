@@ -431,7 +431,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public void prefetchBlock(long sessionId, long blockId) throws BlockDoesNotExistException, IOException {
+  public void prefetchBlock(long sessionId, long blockId)
+      throws BlockDoesNotExistException, IOException {
     try {
       WorkerInfo worker = ThriftUtils.fromThrift(mBlockMasterClient.getBlockOwner(blockId));
       RemoteBlockInStream in

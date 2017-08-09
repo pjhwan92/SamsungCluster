@@ -49,7 +49,6 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -814,6 +813,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     mLostBlocks.addAll(blockIds);
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param blockId the block id
+   * @return worker information
+   */
   public WorkerInfo getBlockOwner(long blockId) {
     return mWorkers.getFirstByField(
         ID_INDEX,
