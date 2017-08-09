@@ -391,4 +391,12 @@ public interface FileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+
+  /**
+   * Added by pjh.
+   *
+   * @param path an Alluxio path to be prefetched
+   * @throws AlluxioException if an Alluxio exception occurs
+   */
+  void prefetch(AlluxioURI path) throws AlluxioException;
 }

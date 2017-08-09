@@ -57,6 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+  private static final int DEFAULT_BLOCK_PREFETCHER_POOL_SIZE = 10;
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -77,12 +78,20 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private final ExecutorService mBlockRemovalService = Executors.newFixedThreadPool(
       DEFAULT_BLOCK_REMOVER_POOL_SIZE, ThreadFactoryUtils.build("block-removal-service-%d", true));
 
+  /** The thread pool to prefetch block. */
+  private final ExecutorService mBlockPrefetchingService = Executors.newFixedThreadPool(
+      DEFAULT_BLOCK_PREFETCHER_POOL_SIZE, ThreadFactoryUtils.build("block-prefetching-service-%d", true));
+
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
   /** Map from a block Id to whether it has been removed successfully. */
   @GuardedBy("itself")
   private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+
+  /** Map from a block Id to whether it has been prefetched successfully. */
+  @GuardedBy("itself")
+  private final Map<Long, Boolean> mPrefetchingBlockIdToFinished;
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -100,6 +109,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mMasterClient = masterClient;
     mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
+    mPrefetchingBlockIdToFinished = new HashMap<>();
 
     try {
       registerWithMaster();
@@ -205,6 +215,23 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           }
         }
         break;
+      // Master requests blocks to be removed from Alluxio managed space.
+      case Prefetch:
+        synchronized (mPrefetchingBlockIdToFinished) {
+          for (long block : cmd.getData()) {
+            if (!mPrefetchingBlockIdToFinished.containsKey(block)) {
+              mPrefetchingBlockIdToFinished.put(block, false);
+              mBlockPrefetchingService.execute(new BlockPrefetcher(mBlockWorker,
+                  mPrefetchingBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, block));
+            }
+          }
+          Iterator<Map.Entry<Long, Boolean>> it = mPrefetchingBlockIdToFinished.entrySet().iterator();
+          while (it.hasNext()) {
+            if (it.next().getValue()) {
+              it.remove();
+            }
+          }
+        }
       // No action required
       case Nothing:
         break;
@@ -219,6 +246,45 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
+    }
+  }
+
+  @NotThreadSafe
+  private class BlockPrefetcher implements Runnable {
+    private final BlockWorker mBlockWorker;
+    private final long mSessionId;
+    private final long mBlockId;
+    private final Map<Long, Boolean> mPrefetchingBlockIdToFinished;
+
+    public BlockPrefetcher(BlockWorker blockWorker, Map<Long, Boolean> prefetchingBlockIdToFinished,
+       long sessionId, long blockId) {
+      mBlockWorker = blockWorker;
+      mPrefetchingBlockIdToFinished = prefetchingBlockIdToFinished;
+      mSessionId = sessionId;
+      mBlockId = blockId;
+    }
+
+    @Override
+    public void run() {
+      boolean success = false;
+      try {
+        mBlockWorker.prefetchBlock(mSessionId, mBlockId);
+        success = true;
+        synchronized (mPrefetchingBlockIdToFinished) {
+          mPrefetchingBlockIdToFinished.put(mBlockId, true);
+        }
+        LOG.info("Block {} prefetched at session {}", mBlockId, mSessionId);
+      } catch (IOException e) {
+        LOG.warn("Failed master prefetch block cmd for: {}.", mBlockId, e);
+      } catch (BlockDoesNotExistException e) {
+        LOG.warn("Failed master prefetch block cmd for: {} due to block not found.", mBlockId, e);
+      } finally {
+        if (!success) {
+          synchronized (mPrefetchingBlockIdToFinished) {
+            mPrefetchingBlockIdToFinished.remove(mBlockId);
+          }
+        }
+      }
     }
   }
 

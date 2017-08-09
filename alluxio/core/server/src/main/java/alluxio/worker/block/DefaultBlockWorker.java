@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.client.block.BlockStoreContext;
+import alluxio.client.block.RemoteBlockInStream;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -32,6 +34,8 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
+import alluxio.wire.ThriftUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
@@ -50,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -422,6 +427,21 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       return mFileSystemMasterClient.getFileInfo(fileId);
     } catch (AlluxioException e) {
       throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void prefetchBlock(long sessionId, long blockId) throws BlockDoesNotExistException, IOException {
+    try {
+      WorkerInfo worker = ThriftUtils.fromThrift(mBlockMasterClient.getBlockOwner(blockId));
+      RemoteBlockInStream in
+          = new RemoteBlockInStream(blockId, 8192, worker.getAddress(), BlockStoreContext.get());
+      BlockWriter writer = mBlockStore.getBlockWriter(sessionId, blockId);
+      byte[] buffer = new byte[8192];
+      in.read(buffer);
+      writer.append(ByteBuffer.wrap(buffer));
+    } catch (AlluxioException e) {
+      throw new BlockDoesNotExistException(e.getMessage());
     }
   }
 

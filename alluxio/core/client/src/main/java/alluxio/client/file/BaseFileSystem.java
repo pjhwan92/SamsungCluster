@@ -320,4 +320,9 @@ public class BaseFileSystem implements FileSystem {
       mFileSystemContext.releaseMasterClient(masterClient);
     }
   }
+
+  @Override
+  public void prefetch(AlluxioURI path) throws AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+  }
 }

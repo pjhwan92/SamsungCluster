@@ -17,10 +17,12 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.WorkerInfo;
 import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,16 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;
+      }
+    });
+  }
+
+  @Override
+  public WorkerInfo getBlockOwner(final long blockId) throws AlluxioTException, TException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<WorkerInfo>() {
+      @Override
+      public WorkerInfo call() throws AlluxioException {
+        return ThriftUtils.toThrift(mBlockMaster.getBlockOwner(blockId));
       }
     });
   }

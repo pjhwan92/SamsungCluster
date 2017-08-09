@@ -79,4 +79,11 @@ service BlockMasterWorkerService extends common.AlluxioService {
       /** the map of used bytes on each tier */  4: map<string, i64> usedBytesOnTiers,
       /** the map of list of blocks on each tier */  5: map<string, list<i64>> currentBlocksOnTiers)
     throws (1: exception.AlluxioTException e)
+
+	/**
+	 * Get the owner worker of a block.
+	 * Added by pjh.
+	 */
+	WorkerInfo getBlockOwner( /** the id of the block */ 1: i64 blockId)
+		throws (1: exception.AlluxioTException e)
 }

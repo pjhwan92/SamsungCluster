@@ -14,11 +14,13 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
@@ -158,6 +160,22 @@ public final class BlockMasterClient extends AbstractMasterClient {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;
+      }
+    });
+  }
+
+  /**
+   * Get the owner of the block.
+   * Added by pjh.
+   *
+   * @param blockId the block id
+   * @throws BlockDoesNotExistException if block does not exist in Alluxio or UnderFS
+   */
+  public synchronized WorkerInfo getBlockOwner(final long blockId) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<WorkerInfo>() {
+      @Override
+      public WorkerInfo call() throws AlluxioTException, TException {
+        return mClient.getBlockOwner(blockId);
       }
     });
   }
