@@ -170,6 +170,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    *
    * @param blockId the block id
    * @throws BlockDoesNotExistException if block does not exist in Alluxio or UnderFS
+   * @throws IOException if an I/O error occurs or the workerId doesn't exist
    * @return the worker information
    */
   public synchronized WorkerInfo getBlockOwner(final long blockId)

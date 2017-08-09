@@ -234,6 +234,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             }
           }
         }
+        break;
       // No action required
       case Nothing:
         break;
@@ -251,6 +252,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     }
   }
 
+  /**
+   * Thread to prefetch block from master
+   */
   @NotThreadSafe
   private class BlockPrefetcher implements Runnable {
     private final BlockWorker mBlockWorker;
@@ -258,6 +262,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     private final long mBlockId;
     private final Map<Long, Boolean> mPrefetchingBlockIdToFinished;
 
+    /**
+     * Creates a new instance of {@link BlockPrefetcher}.
+     * @param blockWorker block worker for data manager
+     * @param prefetchingBlockIdToFinished map from block id to whether it has been prefetched
+     * @param sessionId the session id
+     * @param blockId the block id
+     */
     public BlockPrefetcher(BlockWorker blockWorker, Map<Long, Boolean> prefetchingBlockIdToFinished,
         long sessionId, long blockId) {
       mBlockWorker = blockWorker;
