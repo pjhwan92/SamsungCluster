@@ -169,7 +169,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * Added by pjh.
    *
    * @param blockId the block id
-   * @throws BlockDoesNotExistException if block does not exist in Alluxio or UnderFS
+   * @throws AlluxioException if block does not exist in Alluxio or UnderFS
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    * @return the worker information
    */

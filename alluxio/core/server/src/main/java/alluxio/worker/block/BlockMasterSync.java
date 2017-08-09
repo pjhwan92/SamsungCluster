@@ -253,7 +253,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Thread to prefetch block from master
+   * Thread to prefetch block from master.
    */
   @NotThreadSafe
   private class BlockPrefetcher implements Runnable {
