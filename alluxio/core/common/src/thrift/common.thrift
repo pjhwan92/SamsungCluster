@@ -34,6 +34,12 @@ struct Command {
   2: list<i64> data
 }
 
+struct PrefetchFromTo {
+	1: i64 blockId
+	2: i64 fromWorkerId
+	3: i64 toWorkerId
+}
+
 /**
 * Address information about workers.
 */
