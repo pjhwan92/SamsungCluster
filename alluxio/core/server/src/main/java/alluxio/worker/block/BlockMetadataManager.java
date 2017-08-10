@@ -370,6 +370,18 @@ public final class BlockMetadataManager {
     return newBlockMeta;
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param blockId the block id
+   * @param length the size of block
+   * @param tempBlockMeta the metadata of temporary block
+   * @return the new block metadata if success, absent otherwise
+   * @throws BlockDoesNotExistException when the block to move is not found
+   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
+   * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
+   *         move
+   */
   public BlockMeta prefetchBlockMeta(long blockId, long length, TempBlockMeta tempBlockMeta)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, BlockAlreadyExistsException {
     StorageDir dstDir = tempBlockMeta.getParentDir();

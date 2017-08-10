@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.PrefetchBlockMeta;
 import alluxio.thrift.WorkerInfo;
 import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
@@ -76,34 +77,25 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
-  public WorkerInfo getBlockOwner(final long blockId) throws AlluxioTException, TException {
-    return RpcUtils.call(new RpcUtils.RpcCallable<WorkerInfo>() {
+  public PrefetchBlockMeta getBlockMeta(final long blockId) throws AlluxioTException, TException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<PrefetchBlockMeta>() {
       @Override
-      public WorkerInfo call() throws AlluxioException {
-        return ThriftUtils.toThrift(mBlockMaster.getBlockOwner(blockId));
-      }
-    });
-  }
-
-  @Override
-  public long getBlockSize(final long blockId) throws TException {
-    return RpcUtils.call(new RpcUtils.RpcCallable<Long>(){
-      @Override
-      public Long call() throws AlluxioException {
-        return mBlockMaster.getBlockSize(blockId);
+      public PrefetchBlockMeta call() throws AlluxioException {
+        return ThriftUtils.toThrift(mBlockMaster.getBlockMeta(blockId));
       }
     });
   }
 
   @Override
   public Command heartbeat(final long workerId, final Map<String, Long> usedBytesOnTiers,
-      final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers)
-      throws AlluxioTException {
+      final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers,
+      final List<Long> prefetchedBlockIds) throws AlluxioTException {
     return RpcUtils.call(new RpcUtils.RpcCallable<Command>() {
       @Override
       public Command call() throws AlluxioException {
         return mBlockMaster
-            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers);
+            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers,
+                prefetchedBlockIds);
       }
     });
   }

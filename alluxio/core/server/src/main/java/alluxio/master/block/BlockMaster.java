@@ -676,11 +676,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
    * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
+   * @param prefetchedBlockIds a list of block ids prefetched to this worker
    * @return an optional command for the worker to execute
    */
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
-      List<Long> prefetchedBlocksIds) {
+      List<Long> prefetchedBlockIds) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -693,6 +694,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerPrefetchedBlocks(worker, prefetchedBlockIds);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
@@ -734,6 +736,23 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         if (block.getNumLocations() == 0) {
           mLostBlocks.add(removedBlockId);
         }
+      }
+    }
+  }
+
+  private void processWorkerPrefetchedBlocks(MasterWorkerInfo workerInfo,
+      Collection<Long> prefetchedBlockIds) {
+    String tierAlias = "SSD";
+    for (long blockId : prefetchedBlockIds) {
+      MasterBlockInfo block = mBlocks.get(blockId);
+      if (block != null) {
+        synchronized (block) {
+          workerInfo.addBlock(blockId);
+          block.addWorker(workerInfo.getId(), tierAlias);
+          mLostBlocks.remove(blockId);
+        }
+      } else {
+        LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
       }
     }
   }
@@ -821,7 +840,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param blockId the block id
    * @return Prefetch meta data
    */
-  public PrefetchBlockMeta getBlockOwner(long blockId) {
+  public PrefetchBlockMeta getBlockMeta(long blockId) {
     MasterBlockInfo block = mBlocks.get(blockId);
     return new PrefetchBlockMeta()
         .setWorkerNetAddress(

@@ -301,10 +301,15 @@ interface BlockStore {
    * @param length the length of block
    * @param srcAddress source worker address
    * @param dstAddress destination worker address
+   * @throws IOException
+   * @throws BlockDoesNotExistException
+   * @throws BlockAlreadyExistsException
+   * @throws InvalidWorkerStateException
+   * @throws WorkerOutOfSpaceException
    */
   void prefetchBlock(long sessionId, long blockId, long length,
                      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
-      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException;
+      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException;
 
   /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up

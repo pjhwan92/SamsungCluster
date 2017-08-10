@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -338,13 +337,25 @@ public final class TieredBlockStore implements BlockStore {
   public void prefetchBlock(long sessionId, long blockId, long length,
       WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
       throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException,
-      InvalidWorkerStateException {
-    prefetchBlockInternal(sessionId, blockId, length, srcAddress, dstAddress);
-    synchronized (mBlockStoreEventListeners) {
-      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-        listener.onPrefetchBlockByWorker(sessionId, blockId);
+      InvalidWorkerStateException, WorkerOutOfSpaceException {
+    BlockStoreLocation newLocation = new BlockStoreLocation(mStorageTierAssoc.getAlias(0), 0);
+    for (int i = 0; i < MAX_RETRIES; i++) {
+      PrefetchBlockResult prefetchResult
+          = prefetchBlockInternal(sessionId, blockId, length, srcAddress, dstAddress, newLocation);
+      if (prefetchResult.getSuccess()) {
+        synchronized (mBlockStoreEventListeners) {
+          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+            listener.onPrefetchBlockByWorker(sessionId, blockId);
+          }
+        }
+        return;
+      }
+      if (i < MAX_RETRIES) {
+        freeSpaceInternal(sessionId, prefetchResult.getBlockSize(), newLocation);
       }
     }
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
+        blockId, MAX_RETRIES);
   }
 
   @Override
@@ -703,20 +714,20 @@ public final class TieredBlockStore implements BlockStore {
    * @param length the size of block
    * @param srcAddress source worker address
    * @param dstAddress destination worker address
+   * @param newLocation block location to be prefetched
    * @return the result of prefetch
    * @throws BlockDoesNotExistException if block is not found
    * @throws BlockAlreadyExistsException if a block with same Id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    * @throws IOException if I/O errors occur when moving block file
    */
-  private PrefetchBlockResult prefetchBlockInternal (long sessionId, long blockId, long length,
-      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
+  private PrefetchBlockResult prefetchBlockInternal(long sessionId, long blockId, long length,
+      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress, BlockStoreLocation newLocation)
       throws InvalidWorkerStateException, IOException, BlockDoesNotExistException,
       BlockAlreadyExistsException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       String dstFilePath;
-      BlockStoreLocation newLocation = new BlockStoreLocation(mStorageTierAssoc.getAlias(0), 0);
       BlockStoreLocation dstLocation;
       InputStream srcInputStream;
       OutputStream dstOutputStream;
@@ -890,16 +901,15 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   private static class PrefetchBlockResult {
-    /** Whether this prefetch operation succeeds */
+    /** Whether this prefetch operation succeeds. */
     private final boolean mSuccess;
-    /** Size of this block in bytes */
+    /** Size of this block in bytes. */
     private final long mBlockSize;
-    /** Destination location of this block to prefetch */
+    /** Destination location of this block to prefetch. */
     private final BlockStoreLocation mDstLocation;
 
-
     /**
-     * Creates a new instance of {@line PrefetchBlockResult}
+     * Creates a new instance of {@line PrefetchBlockResult}.
      *
      * @param success success indicator
      * @param blockSize the size of block
@@ -912,24 +922,17 @@ public final class TieredBlockStore implements BlockStore {
     }
 
     /**
-     * @return the success indicator
+     * @return the success indicator.
      */
     boolean getSuccess() {
       return mSuccess;
     }
 
     /**
-     * @return the size of block
+     * @return the size of block.
      */
     long getBlockSize() {
       return mBlockSize;
-    }
-
-    /**
-     * @return the destination location
-     */
-    BlockStoreLocation getDstLocation() {
-      return mDstLocation;
     }
   }
 

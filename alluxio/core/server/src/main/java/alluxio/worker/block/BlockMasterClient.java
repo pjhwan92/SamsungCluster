@@ -20,8 +20,8 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.PrefetchBlockMeta;
-import alluxio.thrift.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,14 +122,15 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
+   * @param prefetchedBlocks a list of block prefetched to this worker
    * @return an optional command for the worker to execute
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks, final List<Long> prefetchedBlocks
-  ) throws IOException, ConnectionFailedException {
+      final Map<String, List<Long>> addedBlocks, final List<Long> prefetchedBlocks)
+      throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {

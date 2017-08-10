@@ -34,6 +34,7 @@ public final class BlockHeartbeatReport {
    *
    * @param addedBlocks added blocks
    * @param removedBlocks remove blocks
+   * @param prefetchedBlocks prefetched blocks
    */
   public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks,
       List<Long> prefetchedBlocks) {
@@ -60,6 +61,12 @@ public final class BlockHeartbeatReport {
     return Collections.unmodifiableList(mRemovedBlocks);
   }
 
+  /**
+   * Gets the list of blocks added by the worker in the heartbeat this report represents.
+   * Added by pjh.
+   *
+   * @return a list of block ids which have been prefetched
+   */
   public List<Long> getPrefetchedBlocks() {
     return Collections.unmodifiableList(mPrefetchedBlocks);
   }

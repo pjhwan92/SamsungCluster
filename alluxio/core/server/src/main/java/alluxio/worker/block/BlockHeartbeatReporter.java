@@ -163,7 +163,8 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   }
 
   private void addBlockToPrefetchedBlocks(long blockId) {
-    if (!mPrefetchedBlocks.contains(blockId))
+    if (!mPrefetchedBlocks.contains(blockId)) {
       mPrefetchedBlocks.add(blockId);
+    }
   }
 }
