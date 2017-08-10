@@ -19,19 +19,18 @@ import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.PrefetchBlockMeta;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio worker.
@@ -129,11 +128,13 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException, ConnectionFailedException {
+      final Map<String, List<Long>> addedBlocks, final List<Long> prefetchedBlocks
+  ) throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
-        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
+            prefetchedBlocks);
       }
     });
   }
@@ -164,7 +165,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Get the owner of the block.
+   * Get the metadata of the block for prefetching.
    * Added by pjh.
    *
    * @param blockId the block id
@@ -172,12 +173,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    * @return the worker information
    */
-  public synchronized WorkerInfo getBlockOwner(final long blockId)
+  public synchronized PrefetchBlockMeta getBlockMeta(final long blockId)
       throws AlluxioException, IOException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<WorkerInfo>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<PrefetchBlockMeta>() {
       @Override
-      public WorkerInfo call() throws AlluxioTException, TException {
-        return mClient.getBlockOwner(blockId);
+      public PrefetchBlockMeta call() throws AlluxioTException, TException {
+        return mClient.getBlockMeta(blockId);
       }
     });
   }

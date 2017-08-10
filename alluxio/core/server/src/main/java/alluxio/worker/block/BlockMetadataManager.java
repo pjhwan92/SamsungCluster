@@ -370,6 +370,16 @@ public final class BlockMetadataManager {
     return newBlockMeta;
   }
 
+  public BlockMeta prefetchBlockMeta(long blockId, long length, TempBlockMeta tempBlockMeta)
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, BlockAlreadyExistsException {
+    StorageDir dstDir = tempBlockMeta.getParentDir();
+    BlockMeta newBlockMeta =
+        new BlockMeta(blockId, length, dstDir);
+    dstDir.removeTempBlockMeta(tempBlockMeta);
+    dstDir.addBlockMeta(newBlockMeta);
+    return newBlockMeta;
+  }
+
   /**
    * Moves the metadata of an existing block to another location or throws IOExceptions. Throws an
    * {@link IllegalArgumentException} if the newLocation is not in the tiered storage.

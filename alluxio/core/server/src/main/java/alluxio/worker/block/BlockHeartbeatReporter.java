@@ -38,6 +38,9 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
 
+  /** List of blocks that were prefetched in the last hearbeat period. */
+  private final List<Long> mPrefetchedBlocks;
+
   /**
    * Creates a new instance of {@link BlockHeartbeatReporter}.
    */
@@ -45,6 +48,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     mLock = new Object();
     mRemovedBlocks = new ArrayList<>(100);
     mAddedBlocks = new HashMap<>(20);
+    mPrefetchedBlocks = new ArrayList<>(100);
   }
 
   /**
@@ -58,10 +62,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       // Copy added and removed blocks
       Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
       List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
+      List<Long> prefetchedBlocks = new ArrayList<>(mPrefetchedBlocks);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
-      return new BlockHeartbeatReport(addedBlocks, removedBlocks);
+      mPrefetchedBlocks.clear();
+
+      return new BlockHeartbeatReport(addedBlocks, removedBlocks, prefetchedBlocks);
     }
   }
 
@@ -113,6 +120,13 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     }
   }
 
+  @Override
+  public void onPrefetchBlockByWorker(long sessionId, long blockId) {
+    synchronized (mLock) {
+      addBlockToPrefetchedBlocks(blockId);
+    }
+  }
+
   /**
    * Adds a block to the list of added blocks in this heartbeat period.
    *
@@ -146,5 +160,10 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
         break;
       }
     }
+  }
+
+  private void addBlockToPrefetchedBlocks(long blockId) {
+    if (!mPrefetchedBlocks.contains(blockId))
+      mPrefetchedBlocks.add(blockId);
   }
 }

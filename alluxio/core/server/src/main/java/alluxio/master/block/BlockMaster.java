@@ -49,6 +49,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.PrefetchBlockMeta;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -678,7 +679,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return an optional command for the worker to execute
    */
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      List<Long> prefetchedBlocksIds) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -817,13 +819,15 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Added by pjh.
    *
    * @param blockId the block id
-   * @return worker information
+   * @return Prefetch meta data
    */
-  public WorkerInfo getBlockOwner(long blockId) {
-    return mWorkers.getFirstByField(
-        ID_INDEX,
-        mBlocks.get(blockId).getBlockLocations().get(0).getWorkerId()
-    ).generateClientWorkerInfo();
+  public PrefetchBlockMeta getBlockOwner(long blockId) {
+    MasterBlockInfo block = mBlocks.get(blockId);
+    return new PrefetchBlockMeta()
+        .setWorkerNetAddress(
+            mWorkers.getFirstByField(ID_INDEX, block.getBlockLocations().get(0).getWorkerId())
+                .generateClientWorkerInfo().getAddress())
+        .setLength(block.getLength());
   }
 
   /**

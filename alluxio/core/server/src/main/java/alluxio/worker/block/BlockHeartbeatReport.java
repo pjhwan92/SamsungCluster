@@ -26,6 +26,8 @@ public final class BlockHeartbeatReport {
   private final Map<String, List<Long>> mAddedBlocks;
   /** List of block ids removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
+  /** List of block ids which are done for prefetching. */
+  private final List<Long> mPrefetchedBlocks;
 
   /**
    * Creates a new instance of {@link BlockHeartbeatReport}.
@@ -33,9 +35,11 @@ public final class BlockHeartbeatReport {
    * @param addedBlocks added blocks
    * @param removedBlocks remove blocks
    */
-  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks) {
+  public BlockHeartbeatReport(Map<String, List<Long>> addedBlocks, List<Long> removedBlocks,
+      List<Long> prefetchedBlocks) {
     mAddedBlocks = addedBlocks;
     mRemovedBlocks = removedBlocks;
+    mPrefetchedBlocks = prefetchedBlocks;
   }
 
   /**
@@ -54,5 +58,9 @@ public final class BlockHeartbeatReport {
    */
   public List<Long> getRemovedBlocks() {
     return Collections.unmodifiableList(mRemovedBlocks);
+  }
+
+  public List<Long> getPrefetchedBlocks() {
+    return Collections.unmodifiableList(mPrefetchedBlocks);
   }
 }

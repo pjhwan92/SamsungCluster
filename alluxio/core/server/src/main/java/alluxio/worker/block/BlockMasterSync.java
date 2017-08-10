@@ -158,7 +158,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       cmdFromMaster = mMasterClient
           .heartbeat(mWorkerId.get(), storeMeta.getUsedBytesOnTiers(),
-              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(),
+              blockReport.getPrefetchedBlocks());
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (Exception e) {

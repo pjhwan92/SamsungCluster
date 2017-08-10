@@ -86,6 +86,7 @@ public enum ExceptionMessage {
       "blockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
   BLOCK_NOT_FOUND_AT_LOCATION("blockId {0,number,#} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
+  PREFETCH_UNCOMMITTED_BLOCK("Cannot prefetch uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
   NO_SPACE_FOR_BLOCK_ALLOCATION(

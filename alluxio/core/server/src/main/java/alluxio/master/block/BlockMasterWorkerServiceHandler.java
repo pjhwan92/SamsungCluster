@@ -86,6 +86,16 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
+  public long getBlockSize(final long blockId) throws TException {
+    return RpcUtils.call(new RpcUtils.RpcCallable<Long>(){
+      @Override
+      public Long call() throws AlluxioException {
+        return mBlockMaster.getBlockSize(blockId);
+      }
+    });
+  }
+
+  @Override
   public Command heartbeat(final long workerId, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlockIds, final Map<String, List<Long>> addedBlocksOnTiers)
       throws AlluxioTException {

@@ -67,7 +67,8 @@ service BlockMasterWorkerService extends common.AlluxioService {
   common.Command heartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the map of space used in bytes on all tiers */ 2: map<string, i64> usedBytesOnTiers,
       /** the list of removed block ids */ 3: list<i64> removedBlockIds,
-      /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers)
+      /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers,
+			/** the list of prefetched block ids */ 5: list<i64> prefetchedBlockIds)
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -84,6 +85,6 @@ service BlockMasterWorkerService extends common.AlluxioService {
 	 * Get the owner worker of a block.
 	 * Added by pjh.
 	 */
-	WorkerInfo getBlockOwner( /** the id of the block */ 1: i64 blockId)
+	common.PrefetchBlockMeta getBlockMeta( /** the id of the block */ 1: i64 blockId)
 		throws (1: exception.AlluxioTException e)
 }

@@ -14,6 +14,9 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.client.block.BlockStoreContext;
+import alluxio.client.block.LocalBlockOutStream;
+import alluxio.client.block.RemoteBlockInStream;
 import alluxio.collections.Pair;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -22,6 +25,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.evictor.EvictionPlan;
@@ -36,10 +40,14 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -324,6 +332,19 @@ public final class TieredBlockStore implements BlockStore {
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     // TODO(bin): Consider whether to retry here.
     freeSpaceInternal(sessionId, availableBytes, location);
+  }
+
+  @Override
+  public void prefetchBlock(long sessionId, long blockId, long length,
+      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
+      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException,
+      InvalidWorkerStateException {
+    prefetchBlockInternal(sessionId, blockId, length, srcAddress, dstAddress);
+    synchronized (mBlockStoreEventListeners) {
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        listener.onPrefetchBlockByWorker(sessionId, blockId);
+      }
+    }
   }
 
   @Override
@@ -673,6 +694,68 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
+   * Prefetches a block to new location only if allocator finds available space in newLocation. This
+   * method will not trigger any eviction. Returns {@link MoveBlockResult}.
+   * Added by pjh.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param length the size of block
+   * @param srcAddress source worker address
+   * @param dstAddress destination worker address
+   * @return the result of prefetch
+   * @throws BlockDoesNotExistException if block is not found
+   * @throws BlockAlreadyExistsException if a block with same Id already exists in new location
+   * @throws InvalidWorkerStateException if the block to move is a temp block
+   * @throws IOException if I/O errors occur when moving block file
+   */
+  private PrefetchBlockResult prefetchBlockInternal (long sessionId, long blockId, long length,
+      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
+      throws InvalidWorkerStateException, IOException, BlockDoesNotExistException,
+      BlockAlreadyExistsException {
+    long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
+    try {
+      String dstFilePath;
+      BlockStoreLocation newLocation = new BlockStoreLocation(mStorageTierAssoc.getAlias(0), 0);
+      BlockStoreLocation dstLocation;
+      InputStream srcInputStream;
+      OutputStream dstOutputStream;
+
+      try (LockResource r = new LockResource(mMetadataReadLock)) {
+        if (mMetaManager.hasTempBlockMeta(blockId)) {
+          throw new InvalidWorkerStateException(
+              ExceptionMessage.PREFETCH_UNCOMMITTED_BLOCK, blockId);
+        }
+        srcInputStream
+            = new RemoteBlockInStream(blockId, length, srcAddress, BlockStoreContext.get());
+      }
+
+      TempBlockMeta dstTempBlock =
+          createBlockMetaInternal(sessionId, blockId, newLocation, length, true);
+      if (dstTempBlock == null) {
+        return new PrefetchBlockResult(false, length, null);
+      }
+
+      dstLocation = dstTempBlock.getBlockLocation();
+      dstOutputStream = new LocalBlockOutStream(blockId, length, dstAddress,
+          BlockStoreContext.get());
+
+      IOUtils.copy(srcInputStream, dstOutputStream);
+
+      try (LockResource r = new LockResource(mMetadataWriteLock)) {
+        mMetaManager.prefetchBlockMeta(blockId, length, dstTempBlock);
+      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
+          | WorkerOutOfSpaceException e) {
+        throw Throwables.propagate(e);
+      }
+
+      return new PrefetchBlockResult(true, length, dstLocation);
+    } finally {
+      mLockManager.unlockBlock(lockId);
+    }
+  }
+
+  /**
    * Moves a block to new location only if allocator finds available space in newLocation. This
    * method will not trigger any eviction. Returns {@link MoveBlockResult}.
    *
@@ -803,6 +886,50 @@ public final class TieredBlockStore implements BlockStore {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
+    }
+  }
+
+  private static class PrefetchBlockResult {
+    /** Whether this prefetch operation succeeds */
+    private final boolean mSuccess;
+    /** Size of this block in bytes */
+    private final long mBlockSize;
+    /** Destination location of this block to prefetch */
+    private final BlockStoreLocation mDstLocation;
+
+
+    /**
+     * Creates a new instance of {@line PrefetchBlockResult}
+     *
+     * @param success success indicator
+     * @param blockSize the size of block
+     * @param dstLocation the destination location
+     */
+    PrefetchBlockResult(boolean success, long blockSize, BlockStoreLocation dstLocation) {
+      mSuccess = success;
+      mBlockSize = blockSize;
+      mDstLocation = dstLocation;
+    }
+
+    /**
+     * @return the success indicator
+     */
+    boolean getSuccess() {
+      return mSuccess;
+    }
+
+    /**
+     * @return the size of block
+     */
+    long getBlockSize() {
+      return mBlockSize;
+    }
+
+    /**
+     * @return the destination location
+     */
+    BlockStoreLocation getDstLocation() {
+      return mDstLocation;
     }
   }
 

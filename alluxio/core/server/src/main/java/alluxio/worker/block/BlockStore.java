@@ -15,6 +15,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -290,6 +291,20 @@ interface BlockStore {
    * @return true if the block is contained, false otherwise
    */
   boolean hasBlockMeta(long blockId);
+
+  /**
+   * Prefetch block.
+   * Added by pjh.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param length the length of block
+   * @param srcAddress source worker address
+   * @param dstAddress destination worker address
+   */
+  void prefetchBlock(long sessionId, long blockId, long length,
+                     WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
+      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException;
 
   /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up

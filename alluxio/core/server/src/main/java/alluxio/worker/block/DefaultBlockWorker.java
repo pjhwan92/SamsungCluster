@@ -33,7 +33,9 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.PrefetchBlockMeta;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -434,13 +436,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void prefetchBlock(long sessionId, long blockId)
       throws BlockDoesNotExistException, IOException {
     try {
-      WorkerInfo worker = ThriftUtils.fromThrift(mBlockMasterClient.getBlockOwner(blockId));
-      RemoteBlockInStream in
-          = new RemoteBlockInStream(blockId, 8192, worker.getAddress(), BlockStoreContext.get());
-      BlockWriter writer = mBlockStore.getBlockWriter(sessionId, blockId);
-      byte[] buffer = new byte[8192];
-      in.read(buffer);
-      writer.append(ByteBuffer.wrap(buffer));
+      PrefetchBlockMeta meta
+          = ThriftUtils.fromThrift(mBlockMasterClient.getBlockMeta(blockId));
+      mBlockStore.prefetchBlock(sessionId, blockId, meta.getLength(), mAddress,
+          meta.getWorkerNetAddress());
     } catch (AlluxioException e) {
       throw new BlockDoesNotExistException(e.getMessage());
     }

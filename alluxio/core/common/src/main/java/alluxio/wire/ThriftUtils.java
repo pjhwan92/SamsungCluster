@@ -122,6 +122,17 @@ public final class ThriftUtils {
   }
 
   /**
+   * Converts a thrift type to a wire type.
+   * Added by pjh.
+   *
+   * @param prefetchBlockMeta the thrift representation of a prefetched block metadata
+   * @return wire representation of the prefetched block metadata
+   */
+  public static PrefetchBlockMeta fromThrift(alluxio.thrift.PrefetchBlockMeta prefetchBlockMeta) {
+    return new PrefetchBlockMeta(prefetchBlockMeta);
+  }
+
+  /**
    * Converts a wire type to a thrift type.
    *
    * @param blockInfo the wire representation of a block descriptor
@@ -219,6 +230,17 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
     return workerNetAddress.toThrift();
+  }
+
+  /**
+   * Converts a wire type to a thrift type.
+   * Added by pjh.
+   *
+   * @param prefetchBlockMeta the wrie representation of a prefetched block metadata
+   * @return thrift representation of the prefetched block metadata
+   */
+  public static alluxio.thrift.PrefetchBlockMeta toThrift(PrefetchBlockMeta prefetchBlockMeta) {
+    return prefetchBlockMeta.toThrift();
   }
 }
 
