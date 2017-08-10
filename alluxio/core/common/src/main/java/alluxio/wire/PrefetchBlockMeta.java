@@ -46,6 +46,12 @@ public class PrefetchBlockMeta {
     return mWorkerNetAddress;
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param length the size of block
+   * @return the instance of this class
+   */
   public PrefetchBlockMeta setLength(long length) {
     mLength = length;
     return this;
