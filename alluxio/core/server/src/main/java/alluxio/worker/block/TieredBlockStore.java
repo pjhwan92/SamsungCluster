@@ -905,8 +905,6 @@ public final class TieredBlockStore implements BlockStore {
     private final boolean mSuccess;
     /** Size of this block in bytes. */
     private final long mBlockSize;
-    /** Destination location of this block to prefetch. */
-    private final BlockStoreLocation mDstLocation;
 
     /**
      * Creates a new instance of {@line PrefetchBlockResult}.
@@ -918,7 +916,6 @@ public final class TieredBlockStore implements BlockStore {
     PrefetchBlockResult(boolean success, long blockSize, BlockStoreLocation dstLocation) {
       mSuccess = success;
       mBlockSize = blockSize;
-      mDstLocation = dstLocation;
     }
 
     /**
