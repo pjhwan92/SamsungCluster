@@ -1,6 +1,7 @@
 package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -29,6 +30,8 @@ public class PrefetchBlockMeta {
 
   /**
    * Added by pjh.
+   *
+   * @return the size of block
    */
   public long getLength() {
     return mLength;
@@ -36,6 +39,8 @@ public class PrefetchBlockMeta {
 
   /**
    * Added by pjh.
+   *
+   * @return the address of source worker
    */
   public WorkerNetAddress getWorkerNetAddress() {
     return mWorkerNetAddress;
@@ -46,15 +51,27 @@ public class PrefetchBlockMeta {
     return this;
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param workerNetAddress the address of source worker
+   * @return the instance of this class
+   */
   public PrefetchBlockMeta setWorkerNetAddress(WorkerNetAddress workerNetAddress) {
     mWorkerNetAddress = workerNetAddress;
     return this;
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @return the instance of this class
+   */
   public alluxio.thrift.PrefetchBlockMeta toThrift() {
     return new alluxio.thrift.PrefetchBlockMeta(
         ThriftUtils.toThrift(mWorkerNetAddress), mLength);
   }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
