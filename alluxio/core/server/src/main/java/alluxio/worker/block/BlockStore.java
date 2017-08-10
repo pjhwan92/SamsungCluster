@@ -309,7 +309,8 @@ interface BlockStore {
    */
   void prefetchBlock(long sessionId, long blockId, long length,
                      WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
-      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException;
+      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException,
+      InvalidWorkerStateException, WorkerOutOfSpaceException;
 
   /**
    * Cleans up the data associated with a specific session (typically a dead session). Clean up

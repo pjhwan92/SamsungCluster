@@ -83,7 +83,6 @@ public interface BlockStoreEventListener {
    */
   void onRemoveBlockByWorker(long sessionId, long blockId);
 
-
   /**
    * Actions when prefetching a block by worker.
    * Added by pjh.

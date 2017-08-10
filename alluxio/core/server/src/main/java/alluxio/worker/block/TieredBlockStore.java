@@ -922,14 +922,14 @@ public final class TieredBlockStore implements BlockStore {
     }
 
     /**
-     * @return the success indicator.
+     * @return the success indicator
      */
     boolean getSuccess() {
       return mSuccess;
     }
 
     /**
-     * @return the size of block.
+     * @return the size of block
      */
     long getBlockSize() {
       return mBlockSize;

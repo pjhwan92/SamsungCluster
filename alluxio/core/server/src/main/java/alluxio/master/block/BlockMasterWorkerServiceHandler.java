@@ -18,7 +18,6 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.PrefetchBlockMeta;
-import alluxio.thrift.WorkerInfo;
 import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
