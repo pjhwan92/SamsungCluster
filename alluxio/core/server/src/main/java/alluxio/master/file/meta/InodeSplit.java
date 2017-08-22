@@ -20,15 +20,15 @@ import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerInfo;
+//import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
-import java.util.HashSet;
+//import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+//import java.util.Set;
 
 /**
  * Alluxio file system's file representation in the file system master. The inode must be locked
