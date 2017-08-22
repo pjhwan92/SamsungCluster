@@ -396,7 +396,20 @@ public interface FileSystem {
    * Added by pjh.
    *
    * @param path an Alluxio path to be prefetched
+   * @param numPartitions the number or size of partitions
+   * @param isPartitionSize whether the 2nd parameter is the size or number
    * @throws AlluxioException if an Alluxio exception occurs
    */
-  void prefetch(AlluxioURI path) throws AlluxioException;
+  void prefetch(AlluxioURI path, long numPartitions, boolean isPartitionSize)
+      throws AlluxioException, IOException;
+
+  /**
+   * Added by pjh.
+   *
+   * @param path an Alluxio path to be prefetched
+   * @param numPartitions the number or size of partitions
+   * @param isPartitionSize whether the 2nd parameter is the size or number
+   */
+  void createSplits(AlluxioURI path, long numPartitions, boolean isPartitionSize)
+      throws IOException, AlluxioException;
 }

@@ -65,6 +65,8 @@ public final class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
+  /** ids of blocks the worker should prefetch (Added by pjh). */
+  private Set<Long> mToPrefetchBlocks;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -83,6 +85,7 @@ public final class MasterWorkerInfo {
     mUsedBytesOnTiers = new HashMap<>();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
+    mToPrefetchBlocks = new HashSet<>();
   }
 
   /**
@@ -168,6 +171,7 @@ public final class MasterWorkerInfo {
   public void removeBlock(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
+    mToPrefetchBlocks.remove(blockId);
   }
 
   /**
@@ -230,6 +234,13 @@ public final class MasterWorkerInfo {
    */
   public List<Long> getToRemoveBlocks() {
     return new ArrayList<>(mToRemoveBlocks);
+  }
+
+  /**
+   * @return ids of blocks the worker should prefetch
+   */
+  public List<Long> getToPrefetchBlocks() {
+    return new ArrayList<>(mToPrefetchBlocks);
   }
 
   /**
@@ -313,6 +324,21 @@ public final class MasterWorkerInfo {
       }
     } else {
       mToRemoveBlocks.remove(blockId);
+    }
+  }
+
+  /**
+   * Prefetches a block from the to-be-prefetched blocks set of the worker.
+   *
+   * @param blockId the id of the block to be prefetched
+   */
+  public void updateToPrefetchBlock(boolean add, long blockId) {
+    if (add) {
+      if (mBlocks.contains(blockId)) {
+        mToPrefetchBlocks.add(blockId);
+      }
+    } else {
+      mToPrefetchBlocks.remove(blockId);
     }
   }
 

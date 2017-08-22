@@ -38,6 +38,7 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -291,6 +292,30 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public Void call() throws AlluxioException, IOException {
         mFileSystemMaster.unmount(new AlluxioURI(alluxioPath));
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public void prefetch(final String path, final long numPartitions, final boolean isPartitionSize)
+      throws AlluxioTException, TException {
+    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mFileSystemMaster.prefetchTrigger(new AlluxioURI(path), numPartitions, isPartitionSize);
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public void createSplits(final String path, final long numPartitions,
+       final boolean isPartitionSize) throws AlluxioTException, TException {
+    RpcUtils.call(new RpcUtils.RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mFileSystemMaster.createSplit(new AlluxioURI(path), numPartitions, isPartitionSize);
         return null;
       }
     });

@@ -322,7 +322,24 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public void prefetch(AlluxioURI path) throws AlluxioException {
+  public void prefetch(AlluxioURI path, long numPartitions, boolean isPartitionSize)
+      throws AlluxioException, IOException {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.prefetch(path, numPartitions, isPartitionSize);
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public void createSplits(AlluxioURI path, long numPartitions, boolean isPartitionSize)
+      throws IOException, AlluxioException {
+    FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
+    try {
+      masterClient.createSplits(path, numPartitions, isPartitionSize);
+    } finally {
+      mFileSystemContext.releaseMasterClient(masterClient);
+    }
   }
 }

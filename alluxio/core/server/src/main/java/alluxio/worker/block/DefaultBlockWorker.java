@@ -433,8 +433,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       PrefetchBlockMeta meta
           = ThriftUtils.fromThrift(mBlockMasterClient.getBlockMeta(blockId));
-      mBlockStore.prefetchBlock(sessionId, blockId, meta.getLength(), mAddress,
-          meta.getWorkerNetAddress());
+      mBlockStore.prefetchBlock(sessionId, blockId, meta.getLength(),
+          meta.getWorkerNetAddress(), mAddress);
     } catch (AlluxioException e) {
       throw new BlockDoesNotExistException(e.getMessage());
     }

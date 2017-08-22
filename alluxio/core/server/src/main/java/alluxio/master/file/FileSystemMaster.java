@@ -42,6 +42,7 @@ import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
+import alluxio.master.file.meta.InodeSplit;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
@@ -216,6 +217,9 @@ public final class FileSystemMaster extends AbstractMaster {
   /** The handler for async persistence. */
   private final AsyncPersistHandler mAsyncPersistHandler;
 
+  /** The map from split to the number of partition which have to be the split candidates */
+  private final Map<AlluxioURI, Long> mPartitionMap;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -270,6 +274,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
+
+    mPartitionMap = new HashMap<>();
 
     Metrics.registerGauges(this);
   }
@@ -906,6 +912,64 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public int getNumberOfPinnedFiles() {
     return mInodeTree.getPinnedSize();
+  }
+
+  public void createSplit(AlluxioURI path, long size, boolean isPartitionSize) {
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+      long numPartitions;
+      InodeFile file = inodePath.getInodeFile();
+      if (isPartitionSize) {
+        long fileLength = file.getLength();
+        numPartitions = fileLength / size;
+        numPartitions += fileLength % size == 0 ? 0 : 1;
+      } else {
+        numPartitions = size;
+      }
+      if (file.hasSplitsOf(numPartitions)) {
+        LOG.info("Splits for a file: {} with the size: {} is already created",
+            file.getName(), numPartitions);
+      }
+      if (!file.createSplits(numPartitions)) {
+        LOG.warn("Split creation of a file: {} failed", file.getName());
+      }
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void prefetchTrigger(AlluxioURI path, long size, boolean isPartitionSize) {
+    Metrics.PREFETCH_PATHS_OPS.inc();
+    try {
+      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+        long numPartitions;
+        InodeFile file = inodePath.getInodeFile();
+        if (isPartitionSize) {
+          long fileLength = file.getLength();
+          numPartitions = fileLength / size;
+          numPartitions += fileLength % size == 0 ? 0 : 1;
+        } else {
+          numPartitions = size;
+        }
+        if (file.hasSplitsOf(numPartitions)) {
+          List<InodeSplit> splits = file.getSplits(numPartitions);
+          for (InodeSplit split : splits) {
+            mBlockMaster.prefetchBlocks(split.getBlockIds());
+          }
+        }
+      }
+    } catch (InvalidPathException | FileDoesNotExistException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void removePrefecthes(AlluxioURI path) {
+    Metrics.PREFETCH_PATHS_OPS.inc();
+    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+      InodeFile file = inodePath.getInodeFile();
+      file.removeSplits();
+    } catch (FileDoesNotExistException | InvalidPathException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -2676,6 +2740,7 @@ public final class FileSystemMaster extends AbstractMaster {
     private static final Counter CREATE_DIRECTORIES_OPS =
         MetricsSystem.masterCounter("CreateDirectoryOps");
     private static final Counter CREATE_FILES_OPS = MetricsSystem.masterCounter("CreateFileOps");
+    private static final Counter PREFETCH_PATHS_OPS = MetricsSystem.masterCounter("PrefetchPathOps");
     private static final Counter DELETE_PATHS_OPS = MetricsSystem.masterCounter("DeletePathOps");
     private static final Counter FREE_FILE_OPS = MetricsSystem.masterCounter("FreeFileOps");
     private static final Counter GET_FILE_BLOCK_INFO_OPS =

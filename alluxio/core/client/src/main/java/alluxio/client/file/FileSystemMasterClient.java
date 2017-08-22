@@ -340,4 +340,48 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       }
     });
   }
+
+  /**
+   * Prefetches the given Alluxio path with the number of partitions.
+   * Added by pjh.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param numPartitions the number of partitions
+   * @param isPartitionSize {@code numPartitions} is size or not
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized void prefetch(final AlluxioURI alluxioPath, final long numPartitions,
+                                    final boolean isPartitionSize)
+      throws AlluxioException, IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.prefetch(alluxioPath.toString(), numPartitions, isPartitionSize);
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Create splits of a file to prepare the prefetching mechanism.
+   * Added by pjh.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param numPartitions the number of partitions
+   * @param isPartitionSize {@code numPartitions} is size or not
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized void createSplits(final AlluxioURI alluxioPath, final long numPartitions,
+                                       final boolean isPartitionSize)
+      throws AlluxioException, IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.createSplits(alluxioPath.toString(), numPartitions, isPartitionSize);
+        return null;
+      }
+    });
+  }
 }

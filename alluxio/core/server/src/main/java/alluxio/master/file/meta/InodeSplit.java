@@ -21,50 +21,53 @@ import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
-
+import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Alluxio file system's file representation in the file system master. The inode must be locked
  * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
 @NotThreadSafe
-public final class InodeFile extends Inode<InodeFile> {
+public final class InodeSplit extends Inode<InodeSplit> {
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
   private boolean mCacheable;
   private boolean mCompleted;
+  private long mOffset;
   private long mLength;
   private long mTtl;
-  private Map<Long, List<InodeSplit>> mSplits;
+  private boolean mIsPrefetched;
+  private Set<WorkerInfo> mPrefetchingWorkers;
 
   /**
-   * Creates a new instance of {@link InodeFile}.
+   * Creates a new instance of {@link InodeSplit}.
    *
    * @param blockContainerId the block container id to use
    */
-  private InodeFile(long blockContainerId) {
+  private InodeSplit(long blockContainerId) {
     super(BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), false);
     mBlocks = new ArrayList<>(1);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = 0;
     mCacheable = false;
     mCompleted = false;
+    mOffset = -1;
     mLength = 0;
     mTtl = Constants.NO_TTL;
-    mSplits = new HashMap<>();
+    mIsPrefetched = false;
+    mPrefetchingWorkers = new HashSet<>();
   }
 
   @Override
-  protected InodeFile getThis() {
+  protected InodeSplit getThis() {
     return this;
   }
 
@@ -93,73 +96,6 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     return ret;
-  }
-
-  /**
-   * Check whether this file has split or not.
-   * Added by pjh.
-   *
-   * @param numPartitions the number of partitions in a split, also work as key of split
-   * @return true if this file has split of {@code numPartitions}, else false
-   */
-  public boolean hasSplitsOf (long numPartitions) {
-    return mSplits.containsKey(numPartitions);
-  }
-
-
-  /**
-   * Create split of this file by the factor of {@code numPartitions}.
-   * Added by pjh.
-   *
-   * @param numPartitions the number of partitions in a split, also work as key of split
-   * @return true if succeeded, else false
-   */
-  public boolean createSplits(long numPartitions) {
-    String prefix = "Split" + numPartitions + "_";
-    String suffix = "_" + getName();
-    int numBlocks = 0;
-    List<InodeSplit> splits;
-    long splitSize;
-    if (numPartitions == 0 || mBlocks.size() < numPartitions) {
-      return false;
-    }
-    numBlocks = mBlocks.size();
-    splitSize = mLength / numPartitions;
-    splits = new ArrayList<>();
-    for (int i = 0; i < numPartitions; i ++) {
-      int start = (int) (i * splitSize / mBlockSizeBytes);
-      int margin = (int) ((start + splitSize) % mBlockSizeBytes);
-      int end = (int) ((start + splitSize) / mBlockSizeBytes);
-      end += margin == 0 ? 0 : 1;
-      InodeSplit split = InodeSplit.create(mBlockContainerId, mId, prefix + i + suffix,
-          System.currentTimeMillis(), mBlockSizeBytes, mTtl, getMode());
-      List<Long> blockIds = new ArrayList<>();
-      for (int j = start; j < end && j < numBlocks; j ++) {
-        blockIds.add(mBlocks.get(j));
-      }
-      split.setBlockIds(blockIds);
-      splits.add(split);
-    }
-    mSplits.put(numPartitions, splits);
-    return true;
-  }
-
-  public void removeSplits() {
-    for (List<InodeSplit> splits : mSplits.values()) {
-      splits.clear();
-    }
-    mSplits.clear();
-  }
-
-  /**
-   * Get the split of {@code numPartitions}.
-   * Added by pjh.
-   *
-   * @param numPartitions the number of partitions in a split, also work as key of split
-   * @return the splits of {@code numPartitions}
-   */
-  public List<InodeSplit> getSplits(long numPartitions) {
-    return mSplits.get(numPartitions);
   }
 
   /**
@@ -239,7 +175,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockSizeBytes the block size to use
    * @return the updated object
    */
-  public InodeFile setBlockSizeBytes(long blockSizeBytes) {
+  public InodeSplit setBlockSizeBytes(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
     return getThis();
@@ -249,7 +185,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockIds the id's of the block
    * @return the updated object
    */
-  public InodeFile setBlockIds(List<Long> blockIds) {
+  public InodeSplit setBlockIds(List<Long> blockIds) {
     mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
     return getThis();
   }
@@ -258,7 +194,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param cacheable the cacheable flag value to use
    * @return the updated object
    */
-  public InodeFile setCacheable(boolean cacheable) {
+  public InodeSplit setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
     mCacheable = cacheable;
     return getThis();
@@ -268,7 +204,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param completed the complete flag value to use
    * @return the updated object
    */
-  public InodeFile setCompleted(boolean completed) {
+  public InodeSplit setCompleted(boolean completed) {
     mCompleted = completed;
     return getThis();
   }
@@ -277,7 +213,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param length the length to use
    * @return the updated object
    */
-  public InodeFile setLength(long length) {
+  public InodeSplit setLength(long length) {
     mLength = length;
     return getThis();
   }
@@ -286,7 +222,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param ttl the TTL to use, in milliseconds
    * @return the updated object
    */
-  public InodeFile setTtl(long ttl) {
+  public InodeSplit setTtl(long ttl) {
     mTtl = ttl;
     return getThis();
   }
@@ -332,16 +268,16 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Converts the entry to an {@link InodeFile}.
+   * Converts the entry to an {@link InodeSplit}.
    *
    * @param entry the entry to convert
-   * @return the {@link InodeFile} representation
+   * @return the {@link InodeSplit} representation
    */
-  public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+  public static InodeSplit fromJournalEntry(InodeFileEntry entry) {
     Permission permission =
         new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
 
-    return new InodeFile(BlockId.getContainerId(entry.getId()))
+    return new InodeSplit(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
         .setBlockSizeBytes(entry.getBlockSizeBytes())
@@ -358,27 +294,28 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Creates an {@link InodeFile}.
+   * Creates an {@link InodeSplit}.
    *
    * @param blockContainerId block container id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
    * @param creationTimeMs the creation time for this inode
-   * @param fileOptions options to create this file
-   * @return the {@link InodeFile} representation
+   * @param blockSizeBytes size of block
+   * @param ttl ttl
+   * @param permission access permission
+   * @return the {@link InodeSplit} representation
    */
-  public static InodeFile create(long blockContainerId, long parentId, String name,
-      long creationTimeMs, CreateFileOptions fileOptions) {
-    Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
-    return new InodeFile(blockContainerId)
-        .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+  public static InodeSplit create(long blockContainerId, long parentId, String name,
+                                  long creationTimeMs, long blockSizeBytes, long ttl,
+                                  short permission) {
+    return new InodeSplit(blockContainerId)
+        .setBlockSizeBytes(blockSizeBytes)
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
-        .setTtl(fileOptions.getTtl())
+        .setTtl(ttl)
         .setParentId(parentId)
         .setPermission(permission)
-        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-            PersistenceState.NOT_PERSISTED);
+        .setPersistenceState(PersistenceState.NOT_PERSISTED);
 
   }
 

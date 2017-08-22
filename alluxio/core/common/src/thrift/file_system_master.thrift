@@ -232,6 +232,24 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void unmount( /** the path of the alluxio mount point */ 1: string alluxioPath)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+	/**
+	 * Prefetch the file as a set of splits with the number of partitions.
+	 * Added by pjh.
+	 */
+	void prefetch( /** the path of the file */ 1: string path,
+       /** the number of partitions */ 2: i64 numPartitions,
+			 /** partition size or not */ 3: bool isPartitionSize)
+    throws (1: exception.AlluxioTException e)
+
+	/**
+	 * Create the splits of a file.
+	 * Added by pjh.
+	 */
+	void createSplits( /** the path of the file */ 1: string path,
+			 /** the number of partitions */ 2: i64 numPartitions,
+			 /** partition size or not */ 3: bool isPartitionSize)
+		throws (1: exception.AlluxioTException e);
 }
 
 /**
