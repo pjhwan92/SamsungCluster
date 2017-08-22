@@ -41,11 +41,11 @@ public final class InodeSplit extends Inode<InodeSplit> {
   private long mBlockSizeBytes;
   private boolean mCacheable;
   private boolean mCompleted;
-  private long mOffset;
+  //private long mOffset;
   private long mLength;
   private long mTtl;
   private boolean mIsPrefetched;
-  private Set<WorkerInfo> mPrefetchingWorkers;
+  //private Set<WorkerInfo> mPrefetchingWorkers;
 
   /**
    * Creates a new instance of {@link InodeSplit}.
@@ -59,11 +59,11 @@ public final class InodeSplit extends Inode<InodeSplit> {
     mBlockSizeBytes = 0;
     mCacheable = false;
     mCompleted = false;
-    mOffset = -1;
+    //mOffset = -1;
     mLength = 0;
     mTtl = Constants.NO_TTL;
     mIsPrefetched = false;
-    mPrefetchingWorkers = new HashSet<>();
+    //mPrefetchingWorkers = new HashSet<>();
   }
 
   @Override
@@ -106,6 +106,15 @@ public final class InodeSplit extends Inode<InodeSplit> {
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
+  }
+
+  /**
+   * Added by pjh.
+   *
+   * @return whether prefetched or not
+   */
+  public boolean isPrefetched() {
+    return mIsPrefetched;
   }
 
   /**

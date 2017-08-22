@@ -218,7 +218,7 @@ public final class FileSystemMaster extends AbstractMaster {
   private final AsyncPersistHandler mAsyncPersistHandler;
 
   /** The map from split to the number of partition which have to be the split candidates. */
-  private final Map<AlluxioURI, Long> mPartitionMap;
+  //private final Map<AlluxioURI, Long> mPartitionMap;
 
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
@@ -275,7 +275,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
-    mPartitionMap = new HashMap<>();
+    //mPartitionMap = new HashMap<>();
 
     Metrics.registerGauges(this);
   }
