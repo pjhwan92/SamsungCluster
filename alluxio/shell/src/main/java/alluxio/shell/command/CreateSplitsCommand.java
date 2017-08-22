@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.shell.AlluxioShellUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -78,7 +79,8 @@ public final class CreateSplitsCommand extends AbstractShellCommand {
    * @param numPartitions number of partitions
    * @param isPartitionSize whether partition size or number of partitions
    */
-  private void createSplitsWildcard(List<AlluxioURI> paths, long numPartitions, boolean isPartitionSize) {
+  private void createSplitsWildcard(List<AlluxioURI> paths,
+                                    long numPartitions, boolean isPartitionSize) {
     /* ToDo must be implemented */
   }
 
