@@ -217,7 +217,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /** The handler for async persistence. */
   private final AsyncPersistHandler mAsyncPersistHandler;
 
-  /** The map from split to the number of partition which have to be the split candidates */
+  /** The map from split to the number of partition which have to be the split candidates. */
   private final Map<AlluxioURI, Long> mPartitionMap;
 
   /**
@@ -914,6 +914,13 @@ public final class FileSystemMaster extends AbstractMaster {
     return mInodeTree.getPinnedSize();
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param path file path
+   * @param size size of partition
+   * @param isPartitionSize whether partition size or number
+   */
   public void createSplit(AlluxioURI path, long size, boolean isPartitionSize) {
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       long numPartitions;
@@ -937,6 +944,13 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Added by pjh.
+   *
+   * @param path file path
+   * @param size partition size
+   * @param isPartitionSize partitions size or number
+   */
   public void prefetchTrigger(AlluxioURI path, long size, boolean isPartitionSize) {
     Metrics.PREFETCH_PATHS_OPS.inc();
     try {
@@ -962,9 +976,14 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Added by pjh.
+   * @param path file path
+   */
   public void removePrefecthes(AlluxioURI path) {
     Metrics.PREFETCH_PATHS_OPS.inc();
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath
+             = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       InodeFile file = inodePath.getInodeFile();
       file.removeSplits();
     } catch (FileDoesNotExistException | InvalidPathException e) {
@@ -991,7 +1010,8 @@ public final class FileSystemMaster extends AbstractMaster {
           InvalidPathException, AccessControlException {
     Metrics.DELETE_PATHS_OPS.inc();
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+    try (LockedInodePath inodePath
+             = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       flushCounter = deleteAndJournal(inodePath, recursive);
@@ -2740,7 +2760,8 @@ public final class FileSystemMaster extends AbstractMaster {
     private static final Counter CREATE_DIRECTORIES_OPS =
         MetricsSystem.masterCounter("CreateDirectoryOps");
     private static final Counter CREATE_FILES_OPS = MetricsSystem.masterCounter("CreateFileOps");
-    private static final Counter PREFETCH_PATHS_OPS = MetricsSystem.masterCounter("PrefetchPathOps");
+    private static final Counter PREFETCH_PATHS_OPS
+        = MetricsSystem.masterCounter("PrefetchPathOps");
     private static final Counter DELETE_PATHS_OPS = MetricsSystem.masterCounter("DeletePathOps");
     private static final Counter FREE_FILE_OPS = MetricsSystem.masterCounter("FreeFileOps");
     private static final Counter GET_FILE_BLOCK_INFO_OPS =

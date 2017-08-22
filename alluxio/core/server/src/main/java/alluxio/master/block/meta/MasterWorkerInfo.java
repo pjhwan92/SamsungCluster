@@ -330,6 +330,7 @@ public final class MasterWorkerInfo {
   /**
    * Prefetches a block from the to-be-prefetched blocks set of the worker.
    *
+   * @param add add or not
    * @param blockId the id of the block to be prefetched
    */
   public void updateToPrefetchBlock(boolean add, long blockId) {

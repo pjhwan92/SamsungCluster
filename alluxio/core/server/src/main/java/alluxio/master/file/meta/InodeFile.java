@@ -102,10 +102,9 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param numPartitions the number of partitions in a split, also work as key of split
    * @return true if this file has split of {@code numPartitions}, else false
    */
-  public boolean hasSplitsOf (long numPartitions) {
+  public boolean hasSplitsOf(long numPartitions) {
     return mSplits.containsKey(numPartitions);
   }
-
 
   /**
    * Create split of this file by the factor of {@code numPartitions}.
@@ -126,7 +125,7 @@ public final class InodeFile extends Inode<InodeFile> {
     numBlocks = mBlocks.size();
     splitSize = mLength / numPartitions;
     splits = new ArrayList<>();
-    for (int i = 0; i < numPartitions; i ++) {
+    for (int i = 0; i < numPartitions; i++) {
       int start = (int) (i * splitSize / mBlockSizeBytes);
       int margin = (int) ((start + splitSize) % mBlockSizeBytes);
       int end = (int) ((start + splitSize) / mBlockSizeBytes);
@@ -134,7 +133,7 @@ public final class InodeFile extends Inode<InodeFile> {
       InodeSplit split = InodeSplit.create(mBlockContainerId, mId, prefix + i + suffix,
           System.currentTimeMillis(), mBlockSizeBytes, mTtl, getMode());
       List<Long> blockIds = new ArrayList<>();
-      for (int j = start; j < end && j < numBlocks; j ++) {
+      for (int j = start; j < end && j < numBlocks; j++) {
         blockIds.add(mBlocks.get(j));
       }
       split.setBlockIds(blockIds);
@@ -144,6 +143,9 @@ public final class InodeFile extends Inode<InodeFile> {
     return true;
   }
 
+  /**
+   * Added by pjh.
+   */
   public void removeSplits() {
     for (List<InodeSplit> splits : mSplits.values()) {
       splits.clear();

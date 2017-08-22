@@ -52,6 +52,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.PrefetchBlockMeta;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
@@ -418,11 +419,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
     long targetWorkerId
         = Collections.max(freqs.entrySet(), new Comparator<Map.Entry<Long, MutableInt>>() {
-      @Override
-      public int compare(Map.Entry<Long, MutableInt> o1, Map.Entry<Long, MutableInt> o2) {
-        return o2.getValue().compareTo(o1.getValue());
-      }
-    }).getKey();
+         @Override
+         public int compare(Map.Entry<Long, MutableInt> o1, Map.Entry<Long, MutableInt> o2) {
+           return o2.getValue().compareTo(o1.getValue());
+         }
+      }).getKey();
 
     return mWorkers.getFirstByField(ID_INDEX, targetWorkerId);
   }
@@ -523,7 +524,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param workerId        the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
-   * @param tierAlias       the alias of the storage tier where the worker is committing the block to
+   * @param tierAlias       the alias of the storage tier where the worker is committing the block
+   *                        to
    * @param blockId         the committing block id
    * @param length          the length of the block
    * @throws NoWorkerException if the workerId is not active
@@ -545,7 +547,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     // Lock the worker metadata first.
     synchronized (worker) {
       // Loop until block metadata is successfully locked.
-      for (; ; ) {
+      for (; ;) {
         boolean newBlock = false;
         MasterBlockInfo block = mBlocks.get(blockId);
         if (block == null) {
@@ -736,16 +738,18 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Updates metadata when a worker registers with the master.
    *
    * @param workerId             the worker id of the worker registering
-   * @param storageTiers         a list of storage tier aliases in order of their position in the worker's
-   *                             hierarchy
+   * @param storageTiers         a list of storage tier aliases in order of their position in the
+   *                             worker's hierarchy
    * @param totalBytesOnTiers    a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers     a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @throws NoWorkerException if workerId cannot be found
    */
   public void workerRegister(long workerId, List<String> storageTiers,
-                             Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-                             Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
+                             Map<String, Long> totalBytesOnTiers,
+                             Map<String, Long> usedBytesOnTiers,
+                             Map<String, List<Long>> currentBlocksOnTiers)
+      throws NoWorkerException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));

@@ -16,12 +16,12 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
+
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
