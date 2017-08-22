@@ -398,6 +398,7 @@ public interface FileSystem {
    * @param path an Alluxio path to be prefetched
    * @param numPartitions the number or size of partitions
    * @param isPartitionSize whether the 2nd parameter is the size or number
+   * @throws IOException if a non-Alluxio exception occurs
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void prefetch(AlluxioURI path, long numPartitions, boolean isPartitionSize)
@@ -409,6 +410,8 @@ public interface FileSystem {
    * @param path an Alluxio path to be prefetched
    * @param numPartitions the number or size of partitions
    * @param isPartitionSize whether the 2nd parameter is the size or number
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws AlluxioException if an Alluxio exception occurs
    */
   void createSplits(AlluxioURI path, long numPartitions, boolean isPartitionSize)
       throws IOException, AlluxioException;
