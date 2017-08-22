@@ -419,11 +419,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
     long targetWorkerId
         = Collections.max(freqs.entrySet(), new Comparator<Map.Entry<Long, MutableInt>>() {
-         @Override
-         public int compare(Map.Entry<Long, MutableInt> o1, Map.Entry<Long, MutableInt> o2) {
-           return o2.getValue().compareTo(o1.getValue());
-         }
-      }).getKey();
+          @Override
+          public int compare(Map.Entry<Long, MutableInt> o1, Map.Entry<Long, MutableInt> o2) {
+            return o2.getValue().compareTo(o1.getValue());
+          }
+        }).getKey();
 
     return mWorkers.getFirstByField(ID_INDEX, targetWorkerId);
   }
@@ -547,7 +547,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     // Lock the worker metadata first.
     synchronized (worker) {
       // Loop until block metadata is successfully locked.
-      for (; ;) {
+      for (;;) {
         boolean newBlock = false;
         MasterBlockInfo block = mBlocks.get(blockId);
         if (block == null) {
@@ -784,7 +784,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return an optional command for the worker to execute
    */
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-                                 List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+                                 List<Long> removedBlockIds,
+                                 Map<String, List<Long>> addedBlocksOnTiers,
                                  List<Long> prefetchedBlockIds) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {

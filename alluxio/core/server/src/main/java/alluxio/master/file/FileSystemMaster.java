@@ -954,7 +954,8 @@ public final class FileSystemMaster extends AbstractMaster {
   public void prefetchTrigger(AlluxioURI path, long size, boolean isPartitionSize) {
     Metrics.PREFETCH_PATHS_OPS.inc();
     try {
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+      try (LockedInodePath inodePath
+               = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
         long numPartitions;
         InodeFile file = inodePath.getInodeFile();
         if (isPartitionSize) {
