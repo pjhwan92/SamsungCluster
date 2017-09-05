@@ -338,7 +338,7 @@ public final class TieredBlockStore implements BlockStore {
       WorkerNetAddress srcAddress, WorkerNetAddress dstAddress)
       throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException,
       InvalidWorkerStateException, WorkerOutOfSpaceException {
-    BlockStoreLocation newLocation = new BlockStoreLocation(mStorageTierAssoc.getAlias(0), 0);
+    BlockStoreLocation newLocation = new BlockStoreLocation(mStorageTierAssoc.getAlias(1), 0);
     for (int i = 0; i < MAX_RETRIES; i++) {
       PrefetchBlockResult prefetchResult
           = prefetchBlockInternal(sessionId, blockId, length, srcAddress, dstAddress, newLocation);
