@@ -87,7 +87,7 @@ class WordCount {
       times += (System.currentTimeMillis () - start).toString
     //}
 
-    Files.createFile (Paths.get ("test_result/" + num + "_" + localPrefix))
+    Files.createFile (Paths.get ("/home/arcs/test_result/" + num + "_" + localPrefix))
     new PrintWriter (new FileOutputStream (localPrefix, true)) {
       write (times.mkString ("\t") + "\n")
       close ()
